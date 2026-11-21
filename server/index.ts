@@ -506,6 +506,9 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
 
 app.listen(PORT, () => {
   console.log(`Taza AI API listening on http://localhost:${PORT}`);
+  if (isProd && !usingObjectStorage) {
+    console.warn("[storage] S3_* not set: photos are saved to the local disk, which Render's free plan wipes on every restart.");
+  }
   // Demo data: always for the in-memory dev DB (it starts empty), or when SEED_DEMO=1.
   if ((!process.env.MONGODB_URI && !isProd) || process.env.SEED_DEMO === "1") {
     seedDemo()
