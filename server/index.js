@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "./env.js";
 import express from "express";
 import cors from "cors";
 import multer from "multer";
@@ -11,7 +11,7 @@ import { putImage, deleteImages, usingObjectStorage } from "./storage.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5050;
 const UPLOAD_DIR = path.join(__dirname, "uploads");
 
 // --- Ensure upload dir exists ---

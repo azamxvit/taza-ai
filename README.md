@@ -1,113 +1,57 @@
-# CleanCity
+# Taza AI
 
-A community environmental reporting app. Residents click a location on a live map,
-attach a photo and a category, and the report appears both on the map and in a
-filterable community feed. Built as a single repo: Vite/React frontend + a
-Node/Express backend backed by MongoDB Atlas.
+**Taza AI** («таза» — «чистый» по-казахски) — гражданская эко-платформа для Атырау.
+Житель фотографирует экологическую проблему, ИИ помогает её описать и доводит
+человека от «увидел проблему» до готового текста официального обращения в eOtinish.
 
-## Features
+> Учебный проект по экологии. Построен поверх опенсорс-проекта CleanCity (MIT),
+> см. раздел [«Основано на»](#основано-на).
 
-- Interactive Leaflet map (Addis Ababa centered) with **Street / Satellite / Dark**
-  base layers, scale control, and a "locate me" button. Click to drop a report pin.
-- Report form with title, description, category, and image upload.
-- All submitted reports render as colored map markers (color = category); resolved
-  reports show a green check badge on the pin and in the feed.
-- **Resolve flow:** "Mark solved" keeps the report (status = resolved); "Report as false"
-  removes it. Both available from the map popup, the feed card, and the detail view.
-- **Upvotes** ("I see this too") for community validation, with live counts.
-- **Stats bar:** total / open / resolved / resolution rate.
-- **Detail view:** modal with full image, description, mini-map, and all actions.
-- Community feed with category filters (synced with the map), loading / empty / error states.
-- Live updates: new reports and status changes appear instantly on the map and in the feed.
-- Client-side routing (`/`, `/map`, `/reports`).
-- Dark, responsive UI (Tailwind v4).
-
-## Tech Stack
-
-- **Frontend:** React 19, Vite 7, React Router 7, Leaflet / react-leaflet, Tailwind v4
-- **Backend:** Node.js, Express, Multer (image uploads), CORS
-- **Database:** MongoDB Atlas (`cleancity` database, `reports` collection)
-- **Deployment:** Vercel (frontend), any Node host (backend)
-
-## Project Structure
-
-```
-clean-city/
-  server/
-    index.js            # Express API (reports CRUD, image upload)
-    db.js               # MongoDB connection (cleancity db, reports collection)
-    uploads/            # uploaded images (gitignored, runtime)
-  src/
-    api.js              # fetch wrappers (respects VITE_API_URL)
-    categories.js       # category definitions (map colors + filters)
-    leafletIcon.js      # Leaflet default-icon fix + colored marker factory
-    context/
-      ReportsContext.jsx# shared report state (live refresh)
-      useReports.js     # hook
-    components/
-      Header.jsx MapView.jsx ReportForm.jsx ReportsPage.jsx
-      ReportCard.jsx Footer.jsx
-    App.jsx main.jsx index.css
-```
-
-## Getting Started (local)
+## Быстрый старт (локально)
 
 ```bash
 npm install
-npm run dev        # starts API (http://localhost:5000) + Vite (http://localhost:5173)
+npm run dev        # API → http://localhost:5050, сайт → http://localhost:5173
 ```
 
-Open http://localhost:5173. The Vite dev server proxies are not required — the
-frontend talks to the API directly via `VITE_API_URL` (defaults to same-origin
-in production, or `http://localhost:5000` in dev if you set it).
+Без `MONGODB_URI` сервер в режиме разработки сам поднимает временную MongoDB в памяти
+(данные пропадают после перезапуска). Ключи и настройки — в [`.env.example`](.env.example);
+скопируй его в `server/.env` и заполни.
 
-### Run servers separately
+## Стек
 
-```bash
-npm run dev:server   # API only → http://localhost:5000 (health: /api/health)
-npm run dev:client   # Vite only → http://localhost:5173
-```
+- **Фронтенд:** React 19, Vite 7, React Router 7, Leaflet / react-leaflet, Tailwind v4
+- **Бэкенд:** Node.js, Express, Multer, sharp
+- **База:** MongoDB Atlas (free M0)
+- **Деплой:** Vercel (фронт) + Render (API)
 
-## API
+## Основано на
 
-| Method | Endpoint           | Description                          |
-|--------|--------------------|--------------------------------------|
-| GET    | `/api/reports`     | List all reports (newest first)      |
-| POST   | `/api/reports`     | Create a report (multipart/form-data)|
-| GET    | `/api/stats`       | Counts: total / open / resolved / byCategory |
-| PATCH  | `/api/reports/:id/resolve` | Mark solved (kept) or false (removed). Body: `{ "reason": "solved" \| "false" }` |
-| PATCH  | `/api/reports/:id/upvote`  | Increment upvotes (community validation) |
-| DELETE | `/api/reports/:id` | Hard delete a report + its image (admin/cleanup) |
+Этот проект — доработка **CleanCity** от [Robibiruk](https://github.com/Robibiruk):
+<https://github.com/Robibiruk/clean-city>, лицензия **MIT**.
+В README оригинала заявлена MIT, но файла лицензии не было — он добавлен в [`LICENSE`](LICENSE)
+с копирайтом оригинального автора.
 
-POST fields: `title` (required), `desc`, `category` (one of `trash`, `pollution`,
-`water`, `green`, `hazard`, `other`), `lat`, `lng`, `image` (file, optional).
+Первый коммит репозитория (`chore: import CleanCity source`) — это исходный код CleanCity
+без изменений, поэтому всё, что добавлено поверх, видно в истории git.
 
-Report documents have a `status` field (`open` | `resolved`) and an `upvotes` counter.
+**Взято из CleanCity:** карта на Leaflet с маркерами, форма жалобы с загрузкой до 5 фото
+и сжатием, лента жалоб с фильтрами, «я тоже это вижу», статистика, Express API
+с MongoDB, хранилище фото (диск или S3), конфиги Vercel и Render.
 
-## Configuration
+**Мои доработки:**
 
-Server (`server/.env` or environment variables):
+- [x] Порт API 5050 (на macOS 5000 занят AirPlay), секреты в `server/.env`
+- [x] Временная MongoDB в памяти для локальной разработки без Atlas
+- [ ] Тёмная тема Taza AI, карта Атырау, локализация kk / ru / en
+- [ ] F1: ИИ-анализ жалобы (Gemini, JSON-схема), новые эко-категории, severity на карте
+- [ ] F2: черновик обращения в eOtinish, статусы, подтверждение устранения тремя жителями
+- [ ] F3: качество воздуха (Open-Meteo) и личный ИИ-план
+- [ ] F4: спутниковые тепловые аномалии NASA FIRMS и недельная сводка
+- [ ] Демо-данные, деплой, материалы для защиты
 
-- `MONGODB_URI` — MongoDB connection string (Atlas SRV recommended). **Required.**
-- `MONGODB_DB` — database name (default `cleancity`).
-- `PORT` — backend port (default `5000`).
-- `CORS_ORIGINS` — comma-separated allowed origins (default `http://localhost:5173`).
+Спорные технические решения записаны в [`docs/DECISIONS.md`](docs/DECISIONS.md).
 
-Frontend (`VITE_API_URL`):
+## Лицензия
 
-- API base URL (e.g. `https://your-backend.onrender.com`). Leave empty to use
-  same-origin (works when the API is served from the same domain as the frontend).
-
-A `.env.example` is provided; copy it to `.env` and fill in `MONGODB_URI`. **Never
-commit `.env`** — it is gitignored.
-
-## Deployment
-
-- **Frontend (Vercel):** build `npm run build`, `vercel.json` SPA rewrite included.
-- **Backend:** deploy `server/index.js` to Render/Fly/etc. Set `MONGODB_URI`,
-  `MONGODB_DB`, and `CORS_ORIGINS` as environment variables, and persist
-  `server/uploads`. Set `VITE_API_URL` on the frontend build to the backend URL.
-
-## License
-
-MIT
+MIT — см. [`LICENSE`](LICENSE).
