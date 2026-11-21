@@ -24,6 +24,8 @@ export function BottomNav() {
     </li>
   );
 
+  const items = NAV_ITEMS.filter((i) => i.mobile);
+
   return (
     <nav
       aria-label={t("nav.main")}
@@ -32,7 +34,7 @@ export function BottomNav() {
       style={{ paddingBottom: "max(8px, env(safe-area-inset-bottom))" }}
     >
       <ul className="flex items-end">
-        {NAV_ITEMS.slice(0, 2).map(item)}
+        {items.slice(0, 2).map(item)}
         <li className="flex flex-1 justify-center">
           <Link
             to="/?new=1"
@@ -42,7 +44,7 @@ export function BottomNav() {
             <Camera size={26} aria-hidden="true" />
           </Link>
         </li>
-        {NAV_ITEMS.slice(2).map(item)}
+        {items.slice(2).map(item)}
       </ul>
     </nav>
   );

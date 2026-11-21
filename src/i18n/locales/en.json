@@ -213,5 +213,122 @@
       "too_large": "The photo is larger than 5 MB.",
       "bad_image": "This file doesn't look like a photo."
     }
+  },
+  "air": {
+    "title": "Air in Atyrau",
+    "subtitle": "Air quality and wind now and for the next 48 hours",
+    "now": "Now",
+    "atTime": "at {{time}}",
+    "noData": "No data",
+    "scale": "US AQI scale",
+    "pollutants": "Pollutants",
+    "unit": "µg/m³, model estimate",
+    "wind": "Wind",
+    "ms": "m/s",
+    "from": "from the {{dir}}",
+    "gusts": "gusts {{value}}",
+    "temperature": "Temperature",
+    "humidity": "Humidity",
+    "windHint": "Wind carries smoke and dust: with strong wind from a pollution source, close the windows.",
+    "chartTitle": "US AQI for 48 hours",
+    "chartHint": "Hover or focus a bar to see details",
+    "today": "today",
+    "tomorrow": "tomorrow",
+    "nowShort": "now",
+    "table": "Show as a table",
+    "time": "Time",
+    "error": "Could not load air data. Please try again later.",
+    "stale": "The air data service is down right now — showing data from {{time}}.",
+    "compass": {
+      "N": "N",
+      "NE": "NE",
+      "E": "E",
+      "SE": "SE",
+      "S": "S",
+      "SW": "SW",
+      "W": "W",
+      "NW": "NW"
+    },
+    "compassFrom": {
+      "N": "north",
+      "NE": "north-east",
+      "E": "east",
+      "SE": "south-east",
+      "S": "south",
+      "SW": "south-west",
+      "W": "west",
+      "NW": "north-west"
+    },
+    "cat": {
+      "good": {
+        "label": "Good",
+        "short": "Good",
+        "advice": "Air is clean — fine for walks and sport."
+      },
+      "moderate": {
+        "label": "Moderate",
+        "short": "Moderate",
+        "advice": "Acceptable. Unusually sensitive people should limit long outdoor exertion."
+      },
+      "sensitive": {
+        "label": "Unhealthy for sensitive groups",
+        "short": "Sensitive",
+        "advice": "Children, older adults and people with heart or lung disease should reduce outdoor exertion."
+      },
+      "unhealthy": {
+        "label": "Unhealthy",
+        "short": "Unhealthy",
+        "advice": "Everyone should reduce long outdoor exertion; sensitive groups should stay indoors."
+      },
+      "very_unhealthy": {
+        "label": "Very unhealthy",
+        "short": "Very unhealthy",
+        "advice": "Avoid outdoor exertion; sensitive groups should stay indoors."
+      },
+      "hazardous": {
+        "label": "Hazardous",
+        "short": "Hazardous",
+        "advice": "Stay indoors and keep windows closed."
+      }
+    },
+    "plan": {
+      "title": "Personal AI plan",
+      "hint": "Choose who you are and what you plan. Only these two answers go to the AI — no personal data.",
+      "who": "Who",
+      "what": "What do you plan",
+      "submit": "Make a plan",
+      "again": "Update the plan",
+      "loading": "The AI is making a plan…",
+      "group": {
+        "general": "Adult, no conditions",
+        "children": "With young children",
+        "elderly": "Older adult",
+        "respiratory": "Asthma / lung disease",
+        "heart": "Heart disease",
+        "pregnant": "Pregnancy"
+      },
+      "activity": {
+        "walk": "A walk",
+        "sport": "Running / sport",
+        "commute": "Commute to work or school",
+        "kids_outdoor": "Kids playing outside",
+        "ventilate": "Air the apartment"
+      },
+      "risk": {
+        "low": "Low risk",
+        "moderate": "Moderate risk",
+        "high": "High risk",
+        "very_high": "Very high risk"
+      },
+      "windows": "Cleanest daytime hours",
+      "avoid": "What to avoid",
+      "notMedical": "This is not medical advice. If you feel worse, contact a doctor."
+    },
+    "attribution": {
+      "data": "Data:",
+      "model": "model",
+      "license": "licence",
+      "note": "This is a model forecast for a ~10 km grid cell, not station measurements."
+    }
   }
 }

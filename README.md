@@ -31,17 +31,19 @@ npm run dev        # API → http://localhost:5050, сайт → http://localhos
 
 ```
 server/                 Express API на TypeScript (index.ts — точка входа)
-  ai/                   Gemini: клиент с запасными моделями, анализ фото (F1), обращение (F2)
+  ai/                   Gemini: клиент с запасными моделями, анализ фото (F1), обращение (F2), план по воздуху (F3)
+  air/                  Open-Meteo: качество воздуха и ветер для Атырау (F3)
 src/
   components/
     ui/                 компоненты shadcn/ui (Button, Badge, Card, Drawer, …)
     common/             общие: иконки, бейджи, фильтр категорий, галерея
     layout/             верхняя панель, нижняя навигация, футер, PageLayout
     map/                экран карты, шторка, контролы, маркеры, слои
-    reports/            карточка, детали и форма жалобы
-  pages/                страницы «Жалобы», «Статистика», «О проекте»
+    reports/            карточка, детали и форма жалобы, обращение, подтверждения
+    air/                качество воздуха: AQI, ветер, график 48 ч, ИИ-план
+  pages/                страницы «Жалобы», «Воздух», «Статистика», «О проекте»
   context/              общее состояние жалоб (ReportsProvider, useReports)
-  hooks/                useMediaQuery
+  hooks/                useMediaQuery, useAir
   lib/                  API-клиент, категории, форматирование, утилиты
   i18n/                 переводы kk / ru / en
   styles/               tokens.css, base.css (стили семантических тегов), map.css
@@ -51,6 +53,13 @@ src/
 В каждой папке есть `index.ts`, импорт идёт через неё: `import { ReportCard } from "@/components/reports"`.
 
 Проверки: `npm run typecheck`, `npm run lint`, `npm run build`.
+
+## Данные
+
+- Качество воздуха и погода: [Open-Meteo.com](https://open-meteo.com/) (модель
+  [Copernicus CAMS](https://atmosphere.copernicus.eu/)), лицензия
+  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- Карта: © участники [OpenStreetMap](https://www.openstreetmap.org/copyright)
 
 ## Основано на
 
@@ -80,7 +89,7 @@ src/
 - [x] Лимит фото 5 МБ и проверка MIME на сервере
 - [x] F1: ИИ-анализ жалобы (Gemini, JSON-схема), правка черновика ИИ, режим без ИИ, лимит 10 запросов/мин
 - [x] F2: черновик обращения в eOtinish (ru/kk), статусы, подтверждение устранения тремя жителями с фото «после»
-- [ ] F3: качество воздуха (Open-Meteo) и личный ИИ-план
+- [x] F3: качество воздуха и ветер (Open-Meteo, кэш 15 мин), график US AQI на 48 ч, личный ИИ-план
 - [ ] F4: спутниковые тепловые аномалии NASA FIRMS и недельная сводка
 - [ ] Демо-данные, деплой, материалы для защиты
 

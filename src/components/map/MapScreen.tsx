@@ -5,6 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Loader2, MousePointerClick } from "lucide-react";
+import { AirChip } from "@/components/air";
 import { CategoryFilter } from "@/components/common";
 import { ReportDetail, ReportForm } from "@/components/reports";
 import { useReports } from "@/context";
@@ -125,6 +126,8 @@ export function MapScreen() {
         onChange={setFilter}
         className="fixed top-[76px] right-3 left-3 z-[1000] py-1 md:right-auto md:left-4 md:max-w-[calc(100%-480px)]"
       />
+
+      <AirChip className="fixed top-[124px] left-3 z-[1000] md:left-4" />
 
       <MapControls
         layer={layer}

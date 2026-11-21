@@ -11,7 +11,8 @@ import type { WithId } from "mongodb";
 import { getReportsCollection, pingDb, toObjectId } from "./db.ts";
 import { DISK_DIR, deleteImages, putImage, usingObjectStorage } from "./storage.ts";
 import { CONFIRMATIONS_TO_RESOLVE, type ReportAi, type ReportDoc, type ReportStatus } from "./types.ts";
-import { AiError, aiConfigured, analyzeReport, generateAppeal, isAiLang, isAppealLang } from "./ai/index.ts";
+import { AiError, aiConfigured, airPlan, analyzeReport, generateAppeal, isAiLang, isAirActivity, isAirGroup, isAppealLang } from "./ai/index.ts";
+import { bestWindows, getAirSnapshot } from "./air/index.ts";
 
 const PORT = Number(process.env.PORT) || 5050;
 const TMP_DIR = path.join(import.meta.dirname, "uploads", "tmp");
@@ -352,6 +353,37 @@ app.post("/api/reports/:id/confirm-resolved", writeLimiter, upload.single("image
     res.status(500).json({ ok: false, message: "Confirmation failed" });
   } finally {
     if (file) fs.rm(file.path, { force: true }, () => {});
+  }
+});
+
+// F3: air quality + wind for Atyrau (Open-Meteo, cached 15 min).
+app.get("/api/air", async (_req, res) => {
+  try {
+    const air = await getAirSnapshot();
+    res.setHeader("Cache-Control", "public, max-age=300");
+    res.json({ ok: true, ...air, bestWindows: bestWindows(air.hourly) });
+  } catch (err) {
+    console.error("[air] Open-Meteo failed:", err instanceof Error ? err.message : err);
+    res.status(503).json({ ok: false, code: "air_unavailable", message: "Air quality data is unavailable." });
+  }
+});
+
+// F3: personal air plan by an anonymous profile (group + activity).
+app.post("/api/ai/air-plan", aiLimiter, async (req, res) => {
+  const { group, activity, lang } = (req.body ?? {}) as Record<string, unknown>;
+  if (!isAirGroup(group) || !isAirActivity(activity)) {
+    return res.status(400).json({ ok: false, code: "bad_profile", message: "Unknown group or activity" });
+  }
+  if (!aiConfigured()) return res.status(503).json({ ok: false, code: "not_configured", message: "AI is not configured." });
+  try {
+    const air = await getAirSnapshot();
+    const windows = bestWindows(air.hourly);
+    const { plan, model } = await airPlan(air, windows, group, activity, isAiLang(lang) ? lang : "ru");
+    res.json({ ok: true, plan, model, windows, basedOn: air.current.time });
+  } catch (err) {
+    console.error("[ai] air plan failed:", err instanceof Error ? err.message : err);
+    const code = err instanceof AiError ? err.code : "unavailable";
+    res.status(code === "bad_response" ? 502 : 503).json({ ok: false, code, message: "Air plan failed." });
   }
 });
 

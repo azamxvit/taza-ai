@@ -1,4 +1,5 @@
 export * from "./api";
+export * from "./aqi";
 export * from "./categories";
 export * from "./compress";
 export * from "./format";

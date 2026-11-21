@@ -44,6 +44,14 @@
   --sev-3: #facc15;
   --sev-4: #fb923c;
   --sev-5: #f43f5e;
+
+  /* US AQI scale (EPA standard colours, fixed meaning — always shown with a label) */
+  --aqi-good: #00e400;
+  --aqi-moderate: #ffff00;
+  --aqi-sensitive: #ff7e00;
+  --aqi-unhealthy: #ff0000;
+  --aqi-very-unhealthy: #8f3f97;
+  --aqi-hazardous: #7e0023;
 }
 
 @media (min-width: 768px) {

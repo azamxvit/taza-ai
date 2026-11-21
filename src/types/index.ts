@@ -118,3 +118,57 @@ export interface LatLng {
 }
 
 export type Lang = "ru" | "kk" | "en";
+
+// --- F3: air quality (Open-Meteo, CAMS model) ---
+
+export interface AirCurrent {
+  time: string;
+  usAqi: number | null;
+  pm25: number | null;
+  pm10: number | null;
+  no2: number | null;
+  o3: number | null;
+  so2: number | null;
+  co: number | null;
+  temperature: number | null;
+  humidity: number | null;
+  windSpeed: number | null;
+  windDirection: number | null;
+  windGusts: number | null;
+}
+
+export interface AirHour {
+  time: string;
+  usAqi: number | null;
+  pm25: number | null;
+  pm10: number | null;
+  windSpeed: number | null;
+  windDirection: number | null;
+}
+
+export interface TimeWindow {
+  from: string;
+  to: string;
+  avgAqi: number;
+}
+
+export interface AirData {
+  location: { name: string; lat: number; lng: number };
+  current: AirCurrent;
+  hourly: AirHour[];
+  bestWindows: TimeWindow[];
+  fetchedAt: string;
+  /** Open-Meteo was down: this is the last known data. */
+  stale?: boolean;
+}
+
+export type AirGroup = "general" | "children" | "elderly" | "respiratory" | "heart" | "pregnant";
+export type AirActivity = "walk" | "sport" | "commute" | "kids_outdoor" | "ventilate";
+
+export interface AirPlan {
+  headline: string;
+  risk: "low" | "moderate" | "high" | "very_high";
+  advice: string[];
+  best_time: string;
+  avoid: string[];
+}

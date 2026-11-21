@@ -1,6 +1,6 @@
 import { Link, NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Camera } from "lucide-react";
+import { Camera, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "./Logo";
 import { LangSwitcher } from "./LangSwitcher";
@@ -46,6 +46,11 @@ export function TopBar() {
           </Link>
         </Button>
         <LangSwitcher />
+        <Button asChild variant="ghost" size="icon" className="rounded-xl text-muted-foreground md:hidden">
+          <NavLink to="/about" aria-label={t("nav.about")}>
+            <Info aria-hidden="true" />
+          </NavLink>
+        </Button>
       </div>
     </header>
   );
