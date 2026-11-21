@@ -60,13 +60,13 @@
     "open": "Open",
     "appeal_sent": "Appeal filed",
     "answered": "Answered",
-    "resolved": "Resolved"
+    "resolved": "Resolved",
+    "label": "Status"
   },
   "report": {
     "seeToo": "I see it too",
     "alreadyConfirmed": "You already confirmed",
     "viewOnMap": "On map",
-    "markSolved": "Problem fixed",
     "reportFalse": "Report as false",
     "delete": "Delete",
     "more": "More",
@@ -166,6 +166,52 @@
       "bad_image": "This file doesn't look like a photo.",
       "no_image": "Add at least one photo.",
       "network": "No connection to the server. Check your internet."
+    }
+  },
+  "appeal": {
+    "title": "Appeal via eOtinish",
+    "prepare": "Prepare an eOtinish appeal",
+    "show": "Appeal text",
+    "language": "Appeal language",
+    "step1": "Check the text and fix it if needed.",
+    "step2": "Copy the text and download the photos.",
+    "step3": "Open eOtinish.kz, sign in with eGov (digital signature or QR), choose the agency, paste the text and attach the photos.",
+    "step4": "After sending, mark “I submitted the appeal” here.",
+    "generating": "The AI is drafting the appeal…",
+    "recipient": "Suggested recipient (check it in eOtinish)",
+    "textLabel": "Appeal text",
+    "actions": "Appeal actions",
+    "copy": "Copy text",
+    "copied": "Text copied",
+    "download_one": "Download photo",
+    "download_other": "Download {{count}} photos",
+    "open": "Open eOtinish.kz",
+    "weDontSend": "Taza AI sends nothing on your behalf: you submit the appeal yourself. eOtinish fills in your applicant details from eGov.",
+    "iSent": "I submitted the appeal",
+    "markedSent": "Status: appeal submitted",
+    "gotAnswer": "Got an answer from the agency",
+    "regenerate": "Regenerate"
+  },
+  "confirm": {
+    "title": "Is the problem fixed?",
+    "hint": "Take a photo of the place now. When {{count}} different residents confirm with an “after” photo, the report becomes “Resolved”.",
+    "resolvedTitle": "Problem resolved",
+    "resolvedHint": "Confirmed with “after” photos by {{count}} residents.",
+    "progress": "{{count}} of {{total}} confirmations",
+    "afterPhoto": "“After” photo",
+    "afterPhotos": "“After” photos from residents",
+    "button": "Confirm with an “after” photo",
+    "uploading": "Uploading photo…",
+    "youConfirmed": "You have confirmed — thank you! Other residents need to confirm too.",
+    "thanks": "Thank you! Your confirmation counts.",
+    "resolvedNow": "Third confirmation: the problem is marked as resolved!",
+    "errors": {
+      "already_confirmed": "This device has already confirmed.",
+      "already_resolved": "The problem is already marked as resolved.",
+      "no_image": "An “after” photo is required.",
+      "rate_limited": "Too many requests. Please wait a minute.",
+      "too_large": "The photo is larger than 5 MB.",
+      "bad_image": "This file doesn't look like a photo."
     }
   }
 }

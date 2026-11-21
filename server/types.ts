@@ -15,6 +15,31 @@ export interface ReportAi {
   edited: boolean;
 }
 
+/** Appeal draft for eOtinish, cached per language. We never send it anywhere ourselves. */
+export interface AppealDoc {
+  lang: "ru" | "kk";
+  recipient: string;
+  subject: string;
+  text: string;
+  model: string;
+  createdAt: Date;
+}
+
+export interface StatusEvent {
+  status: ReportStatus;
+  at: Date;
+}
+
+/** "The problem is gone" confirmation with an "after" photo. `client` is a salted hash of the device id. */
+export interface ResolveConfirmation {
+  client: string;
+  imageUrl: string;
+  at: Date;
+}
+
+/** Distinct confirmations needed to mark a report resolved. */
+export const CONFIRMATIONS_TO_RESOLVE = 3;
+
 export interface ReportDoc {
   _id?: ObjectId;
   title: string;
@@ -29,5 +54,9 @@ export interface ReportDoc {
   upvotes: number;
   createdAt: Date;
   ai?: ReportAi;
+  appeals?: Partial<Record<"ru" | "kk", AppealDoc>>;
+  statusHistory?: StatusEvent[];
+  confirmations?: ResolveConfirmation[];
+  resolvedAt?: Date;
   demo?: boolean;
 }

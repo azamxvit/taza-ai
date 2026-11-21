@@ -77,6 +77,14 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
     [refreshStats]
   );
 
+  const replaceReport = useCallback(
+    (report: Report) => {
+      setReports((prev) => prev.map((r) => (r._id === report._id ? report : r)));
+      void refreshStats();
+    },
+    [refreshStats]
+  );
+
   const value = useMemo(
     () => ({
       reports,
@@ -91,9 +99,10 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
       resolve,
       upvote,
       removeReport,
+      replaceReport,
       lastAddedId,
     }),
-    [reports, loading, error, stats, filter, refresh, refreshStats, addReport, resolve, upvote, removeReport, lastAddedId]
+    [reports, loading, error, stats, filter, refresh, refreshStats, addReport, resolve, upvote, removeReport, replaceReport, lastAddedId]
   );
 
   return <ReportsContext.Provider value={value}>{children}</ReportsContext.Provider>;

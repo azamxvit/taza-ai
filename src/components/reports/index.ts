@@ -1,6 +1,9 @@
 export { AiInsight, ConfidenceChip } from "./AiInsight";
 export { AiNotice } from "./AiNotice";
+export { AppealPanel, EOTINISH_URL } from "./AppealPanel";
 export { ReportCard } from "./ReportCard";
 export { ReportDetail } from "./ReportDetail";
 export { ReportForm } from "./ReportForm";
+export { ResolveConfirm } from "./ResolveConfirm";
 export { SeverityPicker } from "./SeverityPicker";
+export { StatusSteps } from "./StatusSteps";

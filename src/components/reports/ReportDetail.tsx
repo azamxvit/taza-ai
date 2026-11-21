@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CalendarDays, CheckCircle2, Eye, Flag, MapPin, MoreHorizontal, PencilLine, Sparkles, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { CalendarDays, Eye, FileText, Flag, Inbox, MapPin, MoreHorizontal, PencilLine, Sparkles, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,12 +11,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CategoryChip, ImageGallery, SeverityBadge, StatusBadge } from "@/components/common";
-import { reportImages } from "@/lib/api";
+import { useReports } from "@/context";
+import { reportImages, setReportStatus } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
-import { hasUpvoted, markUpvoted } from "@/lib/upvoteStore";
+import { hasUpvoted, markUpvoted } from "@/lib/deviceStore";
 import type { Report, ResolveReason } from "@/types";
 import { AiInsight, ConfidenceChip } from "./AiInsight";
 import { AiNotice } from "./AiNotice";
+import { AppealPanel } from "./AppealPanel";
+import { ResolveConfirm } from "./ResolveConfirm";
+import { StatusSteps } from "./StatusSteps";
 
 interface ReportDetailProps {
   report: Report;
@@ -30,6 +35,8 @@ export function ReportDetail({ report, onResolve, onUpvote, onDelete, onClose }:
   const { t, i18n } = useTranslation();
   const [busy, setBusy] = useState(false);
   const [upvoted, setUpvoted] = useState(() => hasUpvoted(report._id));
+  const [showAppeal, setShowAppeal] = useState(false);
+  const { replaceReport } = useReports();
   const resolved = report.status === "resolved";
 
   const guard = async (fn: () => Promise<unknown>) => {
@@ -51,6 +58,7 @@ export function ReportDetail({ report, onResolve, onUpvote, onDelete, onClose }:
           {report.demo && <li><Badge variant="secondary">{t("app.demo")}</Badge></li>}
         </ul>
         <h2 className="text-xl font-extrabold">{report.title}</h2>
+        <StatusSteps report={report} />
       </header>
 
       <ImageGallery images={reportImages(report)} alt={report.title} />
@@ -118,18 +126,6 @@ export function ReportDetail({ report, onResolve, onUpvote, onDelete, onClose }:
           {t("report.seeToo")} · {report.upvotes || 0}
         </Button>
 
-        {!resolved && (
-          <Button
-            size="lg"
-            disabled={busy}
-            onClick={() => void guard(() => onResolve(report._id, "solved"))}
-            className="h-10 rounded-xl border-primary/40 bg-primary/15 px-4 font-bold text-primary hover:bg-primary/25"
-          >
-            <CheckCircle2 aria-hidden="true" />
-            {t("report.markSolved")}
-          </Button>
-        )}
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="secondary" size="icon-lg" aria-label={t("report.more")} className="ml-auto size-10 rounded-xl">
@@ -162,6 +158,45 @@ export function ReportDetail({ report, onResolve, onUpvote, onDelete, onClose }:
           </DropdownMenuContent>
         </DropdownMenu>
       </footer>
+
+      {!resolved && (
+        <section aria-label={t("appeal.title")} className="flex flex-col gap-3">
+          {report.status === "appeal_sent" && (
+            <Button
+              size="lg"
+              disabled={busy}
+              onClick={() =>
+                void guard(async () => {
+                  try {
+                    replaceReport((await setReportStatus(report._id, "answered")).report);
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : t("errors.generic"));
+                  }
+                })
+              }
+              className="h-10 rounded-xl border-primary/40 bg-primary/15 px-4 font-bold text-primary hover:bg-primary/25"
+            >
+              <Inbox aria-hidden="true" />
+              {t("appeal.gotAnswer")}
+            </Button>
+          )}
+          {showAppeal ? (
+            <AppealPanel report={report} />
+          ) : (
+            <Button
+              size="lg"
+              variant={report.status === "open" ? "default" : "secondary"}
+              onClick={() => setShowAppeal(true)}
+              className="h-11 rounded-xl font-bold"
+            >
+              <FileText aria-hidden="true" />
+              {report.status === "open" ? t("appeal.prepare") : t("appeal.show")}
+            </Button>
+          )}
+        </section>
+      )}
+
+      <ResolveConfirm report={report} />
     </article>
   );
 }

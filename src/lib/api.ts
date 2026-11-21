@@ -1,4 +1,4 @@
-import type { AiAnalysis, Lang, NewReportPayload, Report, ResolveReason, ResolveResult, Stats } from "@/types";
+import type { AiAnalysis, Appeal, AppealLang, Lang, ReportStatus, NewReportPayload, Report, ResolveReason, ResolveResult, Stats } from "@/types";
 
 // API base URL: VITE_API_URL in production, same origin in dev (Vite proxies /api).
 const BASE = import.meta.env.VITE_API_URL?.trim() || "";
@@ -57,6 +57,35 @@ export async function analyzeReport(images: Blob[], note: string, lang: Lang) {
   return handle<{ ok: true; analysis: AiAnalysis; model: string }>(
     await fetch(`${BASE}/api/ai/analyze`, { method: "POST", body: formData })
   );
+}
+
+/** F2: appeal text for eOtinish (cached on the server per language). */
+export async function generateAppeal(reportId: string, lang: AppealLang, regenerate = false) {
+  const res = await fetch(`${BASE}/api/ai/appeal`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reportId, lang, regenerate }),
+  });
+  return handle<{ ok: true; appeal: Appeal; cached: boolean }>(res);
+}
+
+/** open → appeal_sent → answered (the server rejects other transitions). */
+export async function setReportStatus(id: string, status: Extract<ReportStatus, "appeal_sent" | "answered">) {
+  const res = await fetch(`${BASE}/api/reports/${encodeURIComponent(id)}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+  return handle<{ ok: true; report: Report }>(res);
+}
+
+/** "The problem is gone" with an "after" photo; 3 different devices → resolved. */
+export async function confirmResolved(id: string, image: Blob, clientId: string) {
+  const formData = new FormData();
+  formData.append("image", image, "after.jpg");
+  formData.append("clientId", clientId);
+  const res = await fetch(`${BASE}/api/reports/${encodeURIComponent(id)}/confirm-resolved`, { method: "POST", body: formData });
+  return handle<{ ok: true; report: Report }>(res);
 }
 
 /** Resolve an uploaded image path (server returns /uploads/xxx) against the API base. */

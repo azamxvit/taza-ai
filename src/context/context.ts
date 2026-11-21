@@ -16,6 +16,8 @@ export interface ReportsContextValue {
   resolve: (id: string, reason: ResolveReason) => Promise<ResolveResult>;
   upvote: (id: string) => Promise<void>;
   removeReport: (id: string) => Promise<void>;
+  /** Put an updated report (from any API response) into the shared list. */
+  replaceReport: (report: Report) => void;
   lastAddedId: string | null;
 }
 

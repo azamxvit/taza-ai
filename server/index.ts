@@ -10,8 +10,8 @@ import rateLimit from "express-rate-limit";
 import type { WithId } from "mongodb";
 import { getReportsCollection, pingDb, toObjectId } from "./db.ts";
 import { DISK_DIR, deleteImages, putImage, usingObjectStorage } from "./storage.ts";
-import type { ReportAi, ReportDoc } from "./types.ts";
-import { AiError, aiConfigured, analyzeReport, isAiLang } from "./ai/index.ts";
+import { CONFIRMATIONS_TO_RESOLVE, type ReportAi, type ReportDoc, type ReportStatus } from "./types.ts";
+import { AiError, aiConfigured, analyzeReport, generateAppeal, isAiLang, isAppealLang } from "./ai/index.ts";
 
 const PORT = Number(process.env.PORT) || 5050;
 const TMP_DIR = path.join(import.meta.dirname, "uploads", "tmp");
@@ -136,7 +136,30 @@ async function optimizeImage(filePath: string): Promise<void> {
   }
 }
 
-const serialize = (r: WithId<ReportDoc>) => ({ ...r, _id: r._id.toString() });
+/** Public shape: device hashes of confirmations are never sent to the browser. */
+const serialize = (r: WithId<ReportDoc>) => ({
+  ...r,
+  _id: r._id.toString(),
+  confirmations: (r.confirmations ?? []).map(({ imageUrl, at }) => ({ imageUrl, at })),
+});
+
+const CLIENT_SALT = process.env.CLIENT_ID_SALT || "taza-ai";
+const hashClient = (id: string) => crypto.createHash("sha256").update(`${CLIENT_SALT}:${id}`).digest("hex").slice(0, 32);
+const isClientId = (v: unknown): v is string => typeof v === "string" && /^[A-Za-z0-9-]{8,64}$/.test(v);
+
+/** Link to the report on the site, for the appeal text. */
+function publicReportUrl(req: Request, id: string) {
+  const origin = process.env.PUBLIC_SITE_URL?.trim() || (allowedOrigins.includes(req.headers.origin ?? "") ? req.headers.origin : "");
+  return origin ? `${origin.replace(/\/$/, "")}/?r=${id}` : "";
+}
+
+const writeLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: 20,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { ok: false, code: "rate_limited", message: "Too many requests, try again in a minute." },
+});
 
 function parseId(req: Request, res: Response) {
   try {
@@ -200,6 +223,8 @@ app.post("/api/reports", upload.array("images", 5), async (req, res) => {
       status: "open",
       upvotes: 0,
       createdAt: new Date(),
+      statusHistory: [],
+      confirmations: [],
     };
     const aiBlock = parseReportAi(ai);
     if (aiBlock) doc.ai = aiBlock;
@@ -232,6 +257,104 @@ app.post("/api/ai/analyze", aiLimiter, aiUpload.array("images", 3), async (req, 
   }
 });
 
+// F2: appeal draft for eOtinish (ru/kk), cached in the report. We only generate text.
+app.post("/api/ai/appeal", aiLimiter, async (req, res) => {
+  const { reportId, lang, regenerate } = (req.body ?? {}) as { reportId?: string; lang?: string; regenerate?: boolean };
+  if (!isAppealLang(lang)) return res.status(400).json({ ok: false, code: "bad_lang", message: "lang must be ru or kk" });
+  let objectId;
+  try {
+    objectId = toObjectId(String(reportId));
+  } catch {
+    return res.status(400).json({ ok: false, code: "bad_id", message: "Invalid id" });
+  }
+  try {
+    const collection = await getReportsCollection();
+    const report = await collection.findOne({ _id: objectId });
+    if (!report) return res.status(404).json({ ok: false, code: "not_found", message: "Not found" });
+    const cached = report.appeals?.[lang];
+    if (cached && !regenerate) return res.json({ ok: true, appeal: cached, cached: true });
+    if (!aiConfigured()) return res.status(503).json({ ok: false, code: "not_configured", message: "AI is not configured." });
+
+    const appeal = await generateAppeal(report, lang, publicReportUrl(req, report._id.toString()));
+    await collection.updateOne({ _id: objectId }, { $set: { [`appeals.${lang}`]: appeal } });
+    res.json({ ok: true, appeal, cached: false });
+  } catch (err) {
+    console.error("[ai] appeal failed:", err instanceof Error ? err.message : err);
+    const code = err instanceof AiError ? err.code : "unavailable";
+    res.status(code === "bad_response" ? 502 : 503).json({ ok: false, code, message: "Appeal generation failed." });
+  }
+});
+
+// F2: open → appeal_sent → answered. "resolved" only via 3 confirmations below.
+const NEXT_STATUS: Partial<Record<ReportStatus, ReportStatus>> = { open: "appeal_sent", appeal_sent: "answered" };
+
+app.patch("/api/reports/:id/status", writeLimiter, async (req, res) => {
+  const objectId = parseId(req, res);
+  if (!objectId) return;
+  const status = (req.body as { status?: string })?.status as ReportStatus | undefined;
+  const from = (Object.keys(NEXT_STATUS) as ReportStatus[]).find((k) => NEXT_STATUS[k] === status);
+  if (!from) return res.status(400).json({ ok: false, code: "bad_status", message: "Status must be appeal_sent or answered" });
+  try {
+    const updated = await (await getReportsCollection()).findOneAndUpdate(
+      { _id: objectId, status: from },
+      { $set: { status: status! }, $push: { statusHistory: { status: status!, at: new Date() } } },
+      { returnDocument: "after" }
+    );
+    if (!updated) return res.status(409).json({ ok: false, code: "bad_transition", message: `Report is not in status ${from}` });
+    res.json({ ok: true, report: serialize(updated) });
+  } catch {
+    res.status(500).json({ ok: false, message: "Status update failed" });
+  }
+});
+
+// F2: "the problem is gone" with an "after" photo; 3 distinct devices → resolved.
+app.post("/api/reports/:id/confirm-resolved", writeLimiter, upload.single("image"), async (req, res) => {
+  const file = req.file;
+  try {
+    const objectId = parseId(req, res);
+    if (!objectId) return;
+    const { clientId } = req.body as { clientId?: string };
+    if (!isClientId(clientId)) return res.status(400).json({ ok: false, code: "bad_client", message: "clientId required" });
+    if (!file) return res.status(400).json({ ok: false, code: "no_image", message: "An 'after' photo is required." });
+
+    const collection = await getReportsCollection();
+    const client = hashClient(clientId);
+    const report = await collection.findOne({ _id: objectId });
+    if (!report) return res.status(404).json({ ok: false, code: "not_found", message: "Not found" });
+    if (report.status === "resolved") return res.status(409).json({ ok: false, code: "already_resolved", message: "Already resolved" });
+    if (report.confirmations?.some((c) => c.client === client)) {
+      return res.status(409).json({ ok: false, code: "already_confirmed", message: "You have already confirmed" });
+    }
+
+    await optimizeImage(file.path);
+    const imageUrl = await putImage(file.path, `${crypto.randomBytes(12).toString("hex")}.jpg`, "image/jpeg");
+    // Condition on the hash too, so two parallel requests from one device can't both count.
+    let updated = await collection.findOneAndUpdate(
+      { _id: objectId, "confirmations.client": { $ne: client } },
+      { $push: { confirmations: { client, imageUrl, at: new Date() } } },
+      { returnDocument: "after" }
+    );
+    if (!updated) {
+      void deleteImages([imageUrl]);
+      return res.status(409).json({ ok: false, code: "already_confirmed", message: "You have already confirmed" });
+    }
+    if ((updated.confirmations?.length ?? 0) >= CONFIRMATIONS_TO_RESOLVE && updated.status !== "resolved") {
+      const now = new Date();
+      updated =
+        (await collection.findOneAndUpdate(
+          { _id: objectId, status: { $ne: "resolved" } },
+          { $set: { status: "resolved", resolvedAt: now }, $push: { statusHistory: { status: "resolved", at: now } } },
+          { returnDocument: "after" }
+        )) ?? updated;
+    }
+    res.json({ ok: true, report: serialize(updated) });
+  } catch {
+    res.status(500).json({ ok: false, message: "Confirmation failed" });
+  } finally {
+    if (file) fs.rm(file.path, { force: true }, () => {});
+  }
+});
+
 app.get("/api/stats", async (_req, res) => {
   try {
     const collection = await getReportsCollection();
@@ -249,25 +372,23 @@ app.get("/api/stats", async (_req, res) => {
   }
 });
 
-// "solved" keeps the report (status = resolved); "false" deletes it.
+// "false" deletes a false report. Marking as resolved needs 3 confirmations (see confirm-resolved).
 app.patch("/api/reports/:id/resolve", async (req, res) => {
   const objectId = parseId(req, res);
   if (!objectId) return;
   try {
     const collection = await getReportsCollection();
-    if ((req.body as { reason?: string })?.reason === "false") {
-      const removed = await collection.findOneAndDelete({ _id: objectId });
-      if (!removed) return res.status(404).json({ ok: false, message: "Not found" });
-      void deleteImages([removed.imageUrl, ...removed.imageUrls]);
-      return res.json({ ok: true, action: "deleted" });
+    if ((req.body as { reason?: string })?.reason !== "false") {
+      return res.status(400).json({
+        ok: false,
+        code: "needs_confirmations",
+        message: `Resolved requires ${CONFIRMATIONS_TO_RESOLVE} confirmations with an 'after' photo.`,
+      });
     }
-    const updated = await collection.findOneAndUpdate(
-      { _id: objectId },
-      { $set: { status: "resolved" } },
-      { returnDocument: "after" }
-    );
-    if (!updated) return res.status(404).json({ ok: false, message: "Not found" });
-    res.json({ ok: true, action: "resolved", report: serialize(updated) });
+    const removed = await collection.findOneAndDelete({ _id: objectId });
+    if (!removed) return res.status(404).json({ ok: false, message: "Not found" });
+    void deleteImages([removed.imageUrl, ...removed.imageUrls, ...(removed.confirmations ?? []).map((c) => c.imageUrl)]);
+    res.json({ ok: true, action: "deleted" });
   } catch {
     res.status(500).json({ ok: false, message: "Resolve failed" });
   }
@@ -295,7 +416,7 @@ app.delete("/api/reports/:id", async (req, res) => {
   try {
     const removed = await (await getReportsCollection()).findOneAndDelete({ _id: objectId });
     if (!removed) return res.status(404).json({ ok: false, message: "Not found" });
-    void deleteImages([removed.imageUrl, ...removed.imageUrls]);
+    void deleteImages([removed.imageUrl, ...removed.imageUrls, ...(removed.confirmations ?? []).map((c) => c.imageUrl)]);
     res.json({ ok: true, action: "deleted" });
   } catch {
     res.status(500).json({ ok: false, message: "Delete failed" });

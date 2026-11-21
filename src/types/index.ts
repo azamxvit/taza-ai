@@ -39,6 +39,31 @@ export interface ReportAi {
   edited: boolean;
 }
 
+export type AppealLang = "ru" | "kk";
+
+/** Appeal draft for eOtinish. Taza AI never sends it — the resident does. */
+export interface Appeal {
+  lang: AppealLang;
+  recipient: string;
+  subject: string;
+  text: string;
+  model: string;
+  createdAt: string;
+}
+
+export interface StatusEvent {
+  status: ReportStatus;
+  at: string;
+}
+
+/** "Problem is gone" confirmation with an "after" photo. */
+export interface ResolveConfirmation {
+  imageUrl: string;
+  at: string;
+}
+
+export const CONFIRMATIONS_TO_RESOLVE = 3;
+
 export interface Report {
   _id: string;
   title: string;
@@ -54,6 +79,10 @@ export interface Report {
   upvotes: number;
   createdAt: string;
   ai?: ReportAi;
+  appeals?: Partial<Record<AppealLang, Appeal>>;
+  statusHistory?: StatusEvent[];
+  confirmations?: ResolveConfirmation[];
+  resolvedAt?: string;
   demo?: boolean;
 }
 
