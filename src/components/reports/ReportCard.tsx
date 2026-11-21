@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Eye, ImageOff } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { CategoryChip, SeverityBadge, StatusBadge } from "@/components/common";
 import { firstImage } from "@/lib/api";
@@ -27,8 +28,12 @@ export function ReportCard({ report }: { report: Report }) {
               <ImageOff size={26} aria-hidden="true" />
             </span>
           )}
-          <span className="absolute top-2 left-2">
-            <StatusBadge status={report.status} />
+          <span className="absolute top-2 left-2 flex gap-1.5">
+            {/* Opaque backing: the cover can be any colour */}
+            <span className="rounded-full bg-background/90 backdrop-blur">
+              <StatusBadge status={report.status} />
+            </span>
+            {report.demo && <Badge className="h-6 bg-background/80 px-2.5 font-semibold text-muted-foreground">{t("app.demo")}</Badge>}
           </span>
         </figure>
         <div className="flex flex-col gap-2 p-4">

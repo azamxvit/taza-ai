@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CategoryFilter } from "@/components/common";
 import { ReportCard } from "@/components/reports";
 import { useReports } from "@/context";
+import { useSlow } from "@/hooks";
 
 const GRID = "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4";
 
@@ -26,6 +27,7 @@ function SkeletonCard() {
 export function ReportsPage() {
   const { t } = useTranslation();
   const { reports, loading, error, refresh, filter, setFilter } = useReports();
+  const slow = useSlow(loading);
   const filtered = useMemo(
     () => (filter === "all" ? reports : reports.filter((r) => r.category === filter)),
     [reports, filter]
@@ -41,6 +43,12 @@ export function ReportsPage() {
       <CategoryFilter value={filter} onChange={setFilter} className="mb-6" />
 
       <section aria-live="polite" aria-busy={loading}>
+        {slow && (
+          <p role="status" className="mb-4 rounded-xl border border-warn/40 bg-warn/10 p-3 text-sm">
+            {t("errors.waking")}
+          </p>
+        )}
+
         {loading && (
           <ul className={GRID} aria-label={t("feed.loading")}>
             {[0, 1, 2, 3].map((i) => (

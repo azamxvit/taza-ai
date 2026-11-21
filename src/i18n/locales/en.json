@@ -3,7 +3,8 @@
     "name": "Taza AI",
     "tagline": "A clean Atyrau, together",
     "aiDisclaimer": "AI estimate, may be wrong",
-    "demo": "Demo"
+    "demo": "Demo",
+    "title": "Taza AI — a clean Atyrau"
   },
   "nav": {
     "map": "Map",
@@ -108,26 +109,51 @@
     "title": "Statistics",
     "subtitle": "Summary of all reports in Atyrau",
     "total": "Total",
-    "open": "Open",
+    "open": "Not resolved",
     "resolved": "Resolved",
     "rate": "Resolution rate",
     "byCategory": "By category",
-    "empty": "No data yet"
+    "empty": "No data yet",
+    "byStatus": "Report journey",
+    "byStatusHint": "Open → appeal submitted → answer received → resolved (confirmed by 3 residents)."
   },
   "about": {
     "title": "A clean Atyrau, together",
-    "lead": "Taza AI is a civic eco-platform. Seen a dump, smoke or an oil product spill? Take a photo. AI helps describe the problem and drafts an official appeal to the akimat via eOtinish.",
+    "lead": "Taza AI is a civic eco-platform for Atyrau. Saw a dump, smoke or an oil stain? Take a photo. The AI helps describe the problem and drafts an official appeal for eOtinish, and residents together follow it until it is fixed.",
     "step1Title": "Take a photo",
-    "step1": "Shoot the problem and mark the spot on the map.",
-    "step2Title": "AI analyses",
-    "step2": "AI suggests a category and severity — you can edit everything.",
+    "step1": "Photograph the problem and mark the place on the map.",
+    "step2Title": "The AI drafts",
+    "step2": "The AI suggests a title, category and severity — you check and edit.",
     "step3Title": "File an appeal",
-    "step3": "A ready text for eOtinish.kz, signed with your EDS or Digital ID.",
+    "step3": "A ready text in Russian or Kazakh — you submit it yourself on eOtinish.kz via eGov.",
     "cta": "Open the map",
     "openSource": "Open source",
     "basedOn": "Taza AI is built on the open-source project {{name}} by {{author}} (MIT license). The map, feed and reports API come from it; AI, environmental data and appeals are added on top.",
     "dataSources": "Data sources",
-    "ethics": "The AI never concludes that a law was broken or that a specific company is to blame. All AI estimates are preliminary and may be wrong."
+    "ethics": "The AI never concludes that a law was broken or that a specific company is to blame. All AI estimates are preliminary and may be wrong.",
+    "how": "How it works",
+    "step4Title": "Confirm the fix",
+    "step4": "A report closes when three residents confirm with an “after” photo.",
+    "more": "Also on the map",
+    "feature": {
+      "air": {
+        "title": "Air",
+        "text": "Air quality and wind now and for 48 hours, a personal AI plan for walks and sport."
+      },
+      "fires": {
+        "title": "Satellite",
+        "text": "NASA FIRMS thermal anomalies in the oblast for the week, with an AI digest."
+      }
+    },
+    "principles": "Principles",
+    "privacy": "Only the photo and the problem description go to the AI (Google Gemini, free tier) — no names, contacts or coordinates. You submit the appeal yourself: we send nothing on your behalf.",
+    "demo": "Reports marked “Demo” are made up to show the project: places are approximate and drawings replace photos.",
+    "source": {
+      "osm": "Map: © OpenStreetMap contributors; satellite layer — Esri",
+      "meteo": "Air and weather: Open-Meteo.com (Copernicus CAMS model), CC BY 4.0",
+      "firms": "Thermal anomalies: NASA FIRMS (VIIRS 375 m)",
+      "gemini": "AI: Google Gemini"
+    }
   },
   "footer": {
     "basedOn": "Based on {{name}} (MIT)",
@@ -135,7 +161,8 @@
   },
   "errors": {
     "generic": "Something went wrong",
-    "network": "Cannot reach the server"
+    "network": "Cannot reach the server",
+    "waking": "The server is waking up — on free hosting this takes up to a minute…"
   },
   "ai": {
     "analyze": "Analyze with AI",

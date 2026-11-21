@@ -3,6 +3,9 @@ import { Card } from "@/components/ui/card";
 import { NodeIcon } from "@/components/common";
 import { useReports } from "@/context";
 import { CATEGORIES } from "@/lib/categories";
+import type { ReportStatus } from "@/types";
+
+const STATUSES: ReportStatus[] = ["open", "appeal_sent", "answered", "resolved"];
 
 function Tile({ label, value, accent }: { label: string; value: string | number; accent: string }) {
   return (
@@ -34,6 +37,25 @@ export function StatsPage() {
           <Tile label={t("stats.resolved")} value={stats.resolved} accent="text-primary" />
           <Tile label={t("stats.rate")} value={`${rate}%`} accent="text-aqua" />
         </dl>
+      </section>
+
+      <section>
+        <Card className="rounded-[18px] border p-5 ring-0">
+          <h2 className="text-base">{t("stats.byStatus")}</h2>
+          <ol className="grid grid-cols-2 gap-2 md:grid-cols-4">
+            {STATUSES.map((st, i) => (
+              <li key={st} className="flex flex-col gap-1 rounded-xl border bg-background-2 p-3">
+                <small>
+                  {i + 1}. {t(`status.${st}`)}
+                </small>
+                <data value={stats.byStatus?.[st] ?? 0} className="text-2xl font-extrabold">
+                  {stats.byStatus?.[st] ?? 0}
+                </data>
+              </li>
+            ))}
+          </ol>
+          <small>{t("stats.byStatusHint")}</small>
+        </Card>
       </section>
 
       <section>

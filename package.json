@@ -8,6 +8,7 @@
     "dev:client": "vite",
     "dev:server": "tsx watch --clear-screen=false server/index.ts",
     "server": "tsx server/index.ts",
+    "seed": "tsx server/seed.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",

@@ -102,6 +102,7 @@ export interface Stats {
   open: number;
   resolved: number;
   byCategory: Partial<Record<string, number>>;
+  byStatus?: Partial<Record<ReportStatus, number>>;
 }
 
 export type ResolveReason = "solved" | "false";

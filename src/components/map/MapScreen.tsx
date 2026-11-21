@@ -4,13 +4,14 @@ import type L from "leaflet";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Loader2, MousePointerClick } from "lucide-react";
+import { Loader2, MousePointerClick, WifiOff } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { AirChip } from "@/components/air";
 import { CategoryFilter } from "@/components/common";
 import { FiresLayer, FiresPanel } from "@/components/fires";
 import { ReportDetail, ReportForm } from "@/components/reports";
 import { useReports } from "@/context";
-import { DESKTOP_QUERY, useFires } from "@/hooks";
+import { DESKTOP_QUERY, useFires, useSlow } from "@/hooks";
 import { firstImage } from "@/lib/api";
 import type { LatLng, NewReportPayload, Report } from "@/types";
 import { ATYRAU_CENTER, ATYRAU_ZOOM, createBaseLayer, type BaseLayerId } from "./layers";
@@ -33,7 +34,8 @@ function flyToReport(map: L.Map, report: Report) {
 
 export function MapScreen() {
   const { t } = useTranslation();
-  const { reports, loading, addReport, filter, setFilter, resolve, upvote, removeReport, lastAddedId } = useReports();
+  const { reports, loading, error, refresh, addReport, filter, setFilter, resolve, upvote, removeReport, lastAddedId } = useReports();
+  const slow = useSlow(loading);
   const [params, setParams] = useSearchParams();
   const selectedId = params.get("r");
   const isNew = params.get("new") === "1";
@@ -185,18 +187,32 @@ export function MapScreen() {
         />
       )}
 
-      {!sheetOpen && !firesOn && (
+      {!sheetOpen && !firesOn && error && !loading && (
+        <p
+          role="alert"
+          data-surface="glass"
+          className="fixed bottom-[112px] left-1/2 z-[1000] flex -translate-x-1/2 items-center gap-2 rounded-full py-1.5 pr-1.5 pl-4 text-xs font-semibold whitespace-nowrap text-destructive md:bottom-6"
+        >
+          <WifiOff size={14} aria-hidden="true" />
+          {t("errors.network")}
+          <Button size="xs" variant="secondary" onClick={() => void refresh()} className="rounded-full">
+            {t("feed.retry")}
+          </Button>
+        </p>
+      )}
+
+      {!sheetOpen && !firesOn && !error && (
         <p
           role="status"
           data-surface="glass"
-          className="pointer-events-none fixed bottom-[112px] left-1/2 z-[1000] flex -translate-x-1/2 items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold whitespace-nowrap text-muted-foreground animate-in fade-in md:bottom-6"
+          className="pointer-events-none fixed bottom-[112px] left-1/2 z-[1000] flex max-w-[calc(100%-24px)] -translate-x-1/2 items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold text-muted-foreground animate-in fade-in md:bottom-6"
         >
           {loading ? (
-            <Loader2 size={14} className="animate-spin text-primary" aria-hidden="true" />
+            <Loader2 size={14} className="shrink-0 animate-spin text-primary" aria-hidden="true" />
           ) : (
-            <MousePointerClick size={14} className="text-primary" aria-hidden="true" />
+            <MousePointerClick size={14} className="shrink-0 text-primary" aria-hidden="true" />
           )}
-          {loading ? t("feed.loading") : t("map.hint")}
+          {loading ? (slow ? t("errors.waking") : t("feed.loading")) : t("map.hint")}
         </p>
       )}
 

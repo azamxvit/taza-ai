@@ -25,10 +25,15 @@ void i18n.use(initReactI18next).init({
   interpolation: { escapeValue: false },
 });
 
-document.documentElement.lang = i18n.language;
+/** <html lang> and the tab title follow the interface language. */
+function syncDocument(lng: string) {
+  document.documentElement.lang = lng;
+  document.title = i18n.t("app.title");
+}
+syncDocument(i18n.language);
 
 i18n.on("languageChanged", (lng) => {
-  document.documentElement.lang = lng;
+  syncDocument(lng);
   try {
     localStorage.setItem(STORAGE_KEY, lng);
   } catch {

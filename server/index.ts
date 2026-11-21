@@ -14,6 +14,7 @@ import { CONFIRMATIONS_TO_RESOLVE, type ReportAi, type ReportDoc, type ReportSta
 import { AiError, aiConfigured, airPlan, firesSummary, analyzeReport, generateAppeal, isAiLang, isAirActivity, isAirGroup, isAppealLang } from "./ai/index.ts";
 import { bestWindows, getAirSnapshot } from "./air/index.ts";
 import { FirmsError, getFires } from "./firms/index.ts";
+import { seedDemo } from "./seed/index.ts";
 
 const PORT = Number(process.env.PORT) || 5050;
 const TMP_DIR = path.join(import.meta.dirname, "uploads", "tmp");
@@ -427,10 +428,18 @@ app.get("/api/stats", async (_req, res) => {
       collection.countDocuments({ status: "resolved" }),
       collection.countDocuments({ status: { $ne: "resolved" } }),
     ]);
-    const byCategory = await collection
-      .aggregate<{ _id: string; count: number }>([{ $group: { _id: "$category", count: { $sum: 1 } } }])
-      .toArray();
-    res.json({ total, resolved, open, byCategory: Object.fromEntries(byCategory.map((x) => [x._id, x.count])) });
+    const [byCategory, byStatus] = await Promise.all(
+      ["$category", "$status"].map((field) =>
+        collection.aggregate<{ _id: string; count: number }>([{ $group: { _id: field, count: { $sum: 1 } } }]).toArray()
+      )
+    );
+    res.json({
+      total,
+      resolved,
+      open,
+      byCategory: Object.fromEntries(byCategory.map((x) => [x._id, x.count])),
+      byStatus: Object.fromEntries(byStatus.map((x) => [x._id ?? "open", x.count])),
+    });
   } catch {
     res.status(500).json({ ok: false, message: "Failed to read stats" });
   }
@@ -497,4 +506,10 @@ app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
 
 app.listen(PORT, () => {
   console.log(`Taza AI API listening on http://localhost:${PORT}`);
+  // Demo data: always for the in-memory dev DB (it starts empty), or when SEED_DEMO=1.
+  if ((!process.env.MONGODB_URI && !isProd) || process.env.SEED_DEMO === "1") {
+    seedDemo()
+      .then((n) => n && console.log(`[seed] added ${n} demo reports`))
+      .catch((err) => console.error("[seed] failed:", err instanceof Error ? err.message : err));
+  }
 });
