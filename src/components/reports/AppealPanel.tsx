@@ -69,7 +69,11 @@ export function AppealPanel({ report }: { report: Report }) {
         setRecipient(appeal.recipient);
       } catch (err) {
         const code = err instanceof ApiError ? err.code : "network";
-        setError(t(`ai.errors.${code ?? "unavailable"}`, { defaultValue: t("ai.errors.unavailable") }));
+        setError(
+        t(`appeal.errors.${code ?? "unavailable"}`, {
+          defaultValue: t(`ai.errors.${code ?? "unavailable"}`, { defaultValue: t("appeal.errors.unavailable") }),
+        })
+      );
       } finally {
         setLoading(false);
       }

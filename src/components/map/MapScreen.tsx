@@ -7,9 +7,10 @@ import { toast } from "sonner";
 import { Loader2, MousePointerClick } from "lucide-react";
 import { AirChip } from "@/components/air";
 import { CategoryFilter } from "@/components/common";
+import { FiresLayer, FiresPanel } from "@/components/fires";
 import { ReportDetail, ReportForm } from "@/components/reports";
 import { useReports } from "@/context";
-import { DESKTOP_QUERY } from "@/hooks";
+import { DESKTOP_QUERY, useFires } from "@/hooks";
 import { firstImage } from "@/lib/api";
 import type { LatLng, NewReportPayload, Report } from "@/types";
 import { ATYRAU_CENTER, ATYRAU_ZOOM, createBaseLayer, type BaseLayerId } from "./layers";
@@ -40,6 +41,8 @@ export function MapScreen() {
   const [map, setMap] = useState<L.Map | null>(null);
   const [layer, setLayer] = useState<BaseLayerId>("dark");
   const [photos, setPhotos] = useState(false);
+  const [firesOn, setFiresOn] = useState(false);
+  const fires = useFires(firesOn);
   const [pickPos, setPickPos] = useState<LatLng | null>(null);
   const [userPos, setUserPos] = useState<LatLng | null>(null);
 
@@ -64,6 +67,33 @@ export function MapScreen() {
     if (map && selected) flyToReport(map, selected);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the selection changes
   }, [map, selectedKey]);
+
+  // Switching the satellite layer on zooms out to the whole oblast once the data arrives.
+  const firesBbox = fires.data?.bbox.join(",");
+  useEffect(() => {
+    if (!map || !firesOn || !fires.data) return;
+    const [w, s, e, n] = fires.data.bbox;
+    // Leave room for the fires panel: left column on desktop, bottom card on mobile.
+    const desktop = window.matchMedia(DESKTOP_QUERY).matches;
+    map.flyToBounds(
+      [
+        [s, w],
+        [n, e],
+      ],
+      {
+        paddingTopLeft: desktop ? [400, 130] : [16, 170],
+        paddingBottomRight: desktop ? [80, 24] : [64, 440],
+        duration: 0.8,
+      }
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when the layer is switched on / data arrives
+  }, [map, firesOn, firesBbox]);
+
+  const reportAt = (pos: LatLng) => {
+    map?.closePopup();
+    setPickPos(pos);
+    setParams({ new: "1" });
+  };
 
   const closeSheet = useCallback(() => {
     setPickPos(null);
@@ -117,6 +147,8 @@ export function MapScreen() {
           );
         })}
 
+        {firesOn && fires.data && <FiresLayer points={fires.data.points} onReport={reportAt} />}
+
         {formPos && <Marker position={formPos} icon={selectionIcon} interactive={false} />}
         {userPos && <Marker position={userPos} icon={userDotIcon} interactive={false} title={t("map.youAreHere")} />}
       </MapContainer>
@@ -134,13 +166,26 @@ export function MapScreen() {
         onLayerChange={setLayer}
         photos={photos}
         onTogglePhotos={() => setPhotos((v) => !v)}
+        fires={firesOn}
+        onToggleFires={() => setFiresOn((v) => !v)}
         onLocate={locate}
         onZoomIn={() => map?.zoomIn()}
         onZoomOut={() => map?.zoomOut()}
         shifted={sheetOpen}
       />
 
-      {!sheetOpen && (
+      {firesOn && (
+        <FiresPanel
+          data={fires.data}
+          loading={fires.loading}
+          error={fires.error}
+          onRetry={fires.retry}
+          onClose={() => setFiresOn(false)}
+          className={`fixed right-3 bottom-[112px] left-3 z-[1000] md:right-auto md:bottom-6 md:left-4 md:w-[360px] ${sheetOpen ? "max-md:hidden" : ""}`}
+        />
+      )}
+
+      {!sheetOpen && !firesOn && (
         <p
           role="status"
           data-surface="glass"

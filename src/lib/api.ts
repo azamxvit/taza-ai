@@ -1,4 +1,4 @@
-import type { AiAnalysis, AirActivity, AirData, AirGroup, AirPlan, TimeWindow, Appeal, AppealLang, Lang, ReportStatus, NewReportPayload, Report, ResolveReason, ResolveResult, Stats } from "@/types";
+import type { AiAnalysis, AirActivity, AirData, AirGroup, AirPlan, FiresData, FiresSummary, TimeWindow, Appeal, AppealLang, Lang, ReportStatus, NewReportPayload, Report, ResolveReason, ResolveResult, Stats } from "@/types";
 
 // API base URL: VITE_API_URL in production, same origin in dev (Vite proxies /api).
 const BASE = import.meta.env.VITE_API_URL?.trim() || "";
@@ -101,6 +101,21 @@ export async function fetchAirPlan(group: AirGroup, activity: AirActivity, lang:
     body: JSON.stringify({ group, activity, lang }),
   });
   return handle<{ ok: true; plan: AirPlan; windows: TimeWindow[]; basedOn: string; model: string }>(res);
+}
+
+/** F4: NASA FIRMS thermal anomalies in Atyrau oblast, last 7 days (server caches 3 h). */
+export async function fetchFires() {
+  return handle<FiresData & { ok: true }>(await fetch(`${BASE}/api/fires`));
+}
+
+/** F4: weekly AI digest of the same data. */
+export async function fetchFiresSummary(lang: Lang) {
+  const res = await fetch(`${BASE}/api/ai/fires-summary`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ lang }),
+  });
+  return handle<{ ok: true; summary: FiresSummary; from: string; to: string; total: number }>(res);
 }
 
 /** Resolve an uploaded image path (server returns /uploads/xxx) against the API base. */

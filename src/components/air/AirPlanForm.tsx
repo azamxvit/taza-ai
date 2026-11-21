@@ -43,7 +43,11 @@ export function AirPlanForm() {
       setWindows(res.windows);
     } catch (err) {
       const code = err instanceof ApiError ? err.code : "network";
-      setError(t(`ai.errors.${code ?? "unavailable"}`, { defaultValue: t("ai.errors.unavailable") }));
+      setError(
+        t(`air.plan.errors.${code ?? "unavailable"}`, {
+          defaultValue: t(`ai.errors.${code ?? "unavailable"}`, { defaultValue: t("air.plan.errors.unavailable") }),
+        })
+      );
     } finally {
       setLoading(false);
     }

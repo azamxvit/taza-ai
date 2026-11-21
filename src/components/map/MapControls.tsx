@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Images, Layers, LocateFixed, Minus, Plus } from "lucide-react";
+import { Images, Layers, LocateFixed, Minus, Plus, Satellite } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,6 +18,8 @@ interface MapControlsProps {
   onLayerChange: (id: BaseLayerId) => void;
   photos: boolean;
   onTogglePhotos: () => void;
+  fires: boolean;
+  onToggleFires: () => void;
   onLocate: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
@@ -35,10 +37,10 @@ function Control({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-/** Right-hand map toolbar: base layer, photo markers, geolocation, zoom. */
+/** Right-hand map toolbar: base layer, photo markers, satellite anomalies, geolocation, zoom. */
 export function MapControls(props: MapControlsProps) {
   const { t } = useTranslation();
-  const { layer, onLayerChange, photos, onTogglePhotos, onLocate, onZoomIn, onZoomOut, shifted } = props;
+  const { layer, onLayerChange, photos, onTogglePhotos, fires, onToggleFires, onLocate, onZoomIn, onZoomOut, shifted } = props;
 
   return (
     <aside
@@ -77,6 +79,19 @@ export function MapControls(props: MapControlsProps) {
           className={controlClass}
         >
           <Images />
+        </Button>
+      </Control>
+
+      <Control label={t("fires.toggle")}>
+        <Button
+          data-surface={fires ? undefined : "glass"}
+          variant={fires ? "default" : "ghost"}
+          aria-label={t("fires.toggle")}
+          aria-pressed={fires}
+          onClick={onToggleFires}
+          className={`${controlClass} ${fires ? "bg-warn text-background hover:bg-warn/90" : ""}`}
+        >
+          <Satellite />
         </Button>
       </Control>
 

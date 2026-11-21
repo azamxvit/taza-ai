@@ -33,6 +33,8 @@ npm run dev        # API → http://localhost:5050, сайт → http://localhos
 server/                 Express API на TypeScript (index.ts — точка входа)
   ai/                   Gemini: клиент с запасными моделями, анализ фото (F1), обращение (F2), план по воздуху (F3)
   air/                  Open-Meteo: качество воздуха и ветер для Атырау (F3)
+  firms/                NASA FIRMS: тепловые аномалии по Атырауской области (F4)
+  cache.ts              кэш в памяти (Open-Meteo 15 мин, FIRMS 3 ч)
 src/
   components/
     ui/                 компоненты shadcn/ui (Button, Badge, Card, Drawer, …)
@@ -41,9 +43,10 @@ src/
     map/                экран карты, шторка, контролы, маркеры, слои
     reports/            карточка, детали и форма жалобы, обращение, подтверждения
     air/                качество воздуха: AQI, ветер, график 48 ч, ИИ-план
+    fires/              слой тепловых аномалий и панель со сводкой
   pages/                страницы «Жалобы», «Воздух», «Статистика», «О проекте»
   context/              общее состояние жалоб (ReportsProvider, useReports)
-  hooks/                useMediaQuery, useAir
+  hooks/                useMediaQuery, useAir, useFires
   lib/                  API-клиент, категории, форматирование, утилиты
   i18n/                 переводы kk / ru / en
   styles/               tokens.css, base.css (стили семантических тегов), map.css
@@ -59,6 +62,7 @@ src/
 - Качество воздуха и погода: [Open-Meteo.com](https://open-meteo.com/) (модель
   [Copernicus CAMS](https://atmosphere.copernicus.eu/)), лицензия
   [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+- Тепловые аномалии: [NASA FIRMS](https://firms.modaps.eosdis.nasa.gov/) (VIIRS 375 м NRT, LANCE/ESDIS)
 - Карта: © участники [OpenStreetMap](https://www.openstreetmap.org/copyright)
 
 ## Основано на
@@ -90,7 +94,7 @@ src/
 - [x] F1: ИИ-анализ жалобы (Gemini, JSON-схема), правка черновика ИИ, режим без ИИ, лимит 10 запросов/мин
 - [x] F2: черновик обращения в eOtinish (ru/kk), статусы, подтверждение устранения тремя жителями с фото «после»
 - [x] F3: качество воздуха и ветер (Open-Meteo, кэш 15 мин), график US AQI на 48 ч, личный ИИ-план
-- [ ] F4: спутниковые тепловые аномалии NASA FIRMS и недельная сводка
+- [x] F4: спутниковые тепловые аномалии NASA FIRMS (VIIRS, 7 дней, кэш 3 ч) слоем на карте и недельная ИИ-сводка
 - [ ] Демо-данные, деплой, материалы для защиты
 
 Спорные технические решения записаны в [`docs/DECISIONS.md`](docs/DECISIONS.md).

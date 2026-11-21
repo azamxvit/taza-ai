@@ -172,3 +172,48 @@ export interface AirPlan {
   best_time: string;
   avoid: string[];
 }
+
+// --- F4: NASA FIRMS thermal anomalies ---
+
+export interface FirePoint {
+  id: string;
+  lat: number;
+  lng: number;
+  /** UTC ISO time of the satellite pass. */
+  time: string;
+  /** N = Suomi NPP, N20 = NOAA-20, N21 = NOAA-21. */
+  satellite: string;
+  confidence: "low" | "nominal" | "high";
+  /** Fire radiative power, MW. */
+  frp: number;
+  daynight: "D" | "N";
+  /** Same ~1 km spot on 3+ days: likely a steady heat source. */
+  persistent: boolean;
+}
+
+export interface FireStats {
+  total: number;
+  byDay: { date: string; count: number }[];
+  byConfidence: Record<FirePoint["confidence"], number>;
+  persistentPoints: number;
+  nearCity: number;
+}
+
+export interface FiresData {
+  points: FirePoint[];
+  stats: FireStats;
+  /** west, south, east, north */
+  bbox: [number, number, number, number];
+  days: number;
+  from: string;
+  to: string;
+  fetchedAt: string;
+  stale?: boolean;
+}
+
+export interface FiresSummary {
+  headline: string;
+  summary: string;
+  highlights: string[];
+  advice: string[];
+}

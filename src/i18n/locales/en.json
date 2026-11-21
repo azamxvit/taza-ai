@@ -190,7 +190,11 @@
     "iSent": "I submitted the appeal",
     "markedSent": "Status: appeal submitted",
     "gotAnswer": "Got an answer from the agency",
-    "regenerate": "Regenerate"
+    "regenerate": "Regenerate",
+    "errors": {
+      "unavailable": "The AI is overloaded right now. Try again in a minute.",
+      "bad_response": "The AI returned an invalid answer. Try again."
+    }
   },
   "confirm": {
     "title": "Is the problem fixed?",
@@ -322,13 +326,53 @@
       },
       "windows": "Cleanest daytime hours",
       "avoid": "What to avoid",
-      "notMedical": "This is not medical advice. If you feel worse, contact a doctor."
+      "notMedical": "This is not medical advice. If you feel worse, contact a doctor.",
+      "errors": {
+        "unavailable": "The AI is overloaded right now. Try again in a minute.",
+        "bad_response": "The AI returned an invalid answer. Try again."
+      }
     },
     "attribution": {
       "data": "Data:",
       "model": "model",
       "license": "licence",
       "note": "This is a model forecast for a ~10 km grid cell, not station measurements."
+    }
+  },
+  "fires": {
+    "toggle": "Satellite: thermal anomalies, last 7 days",
+    "title": "Satellite thermal anomalies",
+    "area": "Atyrau oblast (approx.)",
+    "anomaly": "Thermal anomaly",
+    "day": "day",
+    "night": "night",
+    "confidence": "Confidence",
+    "frp": "Radiative power",
+    "mw": "MW",
+    "satellite": "Satellite",
+    "conf": {
+      "high": "High",
+      "nominal": "Nominal",
+      "low": "Low"
+    },
+    "persistent": "Repeats 3+ days",
+    "persistentNote": "This spot repeats on 3 or more days — likely a steady heat source rather than a random fire.",
+    "notFire": "A thermal anomaly is a hot spot seen from orbit: a fire, a flare or another hot surface. It is not a confirmed fire.",
+    "reportHere": "Report a problem here",
+    "count_one": "anomaly in 7 days",
+    "count_other": "anomalies in 7 days",
+    "legend": "Legend",
+    "empty": "Satellites saw no thermal anomalies in the oblast this week.",
+    "summaryTitle": "Weekly AI digest",
+    "summaryButton": "Make a digest",
+    "summaryLoading": "The AI is writing the digest…",
+    "stale": "The NASA service is down right now — showing the last data received.",
+    "attribution": "Data:",
+    "errors": {
+      "firms_not_configured": "The NASA FIRMS key is not set on the server (FIRMS_MAP_KEY).",
+      "firms_unavailable": "Could not load satellite data. Please try again later.",
+      "unavailable": "The AI is overloaded right now. Try again in a minute.",
+      "bad_response": "The AI returned an invalid answer. Try again."
     }
   }
 }

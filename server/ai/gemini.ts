@@ -11,7 +11,7 @@ const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 /** Primary model first, then fallbacks (all from the Flash family). */
 const MODELS = [
   process.env.GEMINI_MODEL?.trim() || "gemini-3.8-flash",
-  ...(process.env.GEMINI_FALLBACK_MODELS ?? "gemini-3.1-flash-lite")
+  ...(process.env.GEMINI_FALLBACK_MODELS ?? "gemini-3.5-flash-lite,gemini-3.1-flash-lite")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean),

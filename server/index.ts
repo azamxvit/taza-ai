@@ -11,8 +11,9 @@ import type { WithId } from "mongodb";
 import { getReportsCollection, pingDb, toObjectId } from "./db.ts";
 import { DISK_DIR, deleteImages, putImage, usingObjectStorage } from "./storage.ts";
 import { CONFIRMATIONS_TO_RESOLVE, type ReportAi, type ReportDoc, type ReportStatus } from "./types.ts";
-import { AiError, aiConfigured, airPlan, analyzeReport, generateAppeal, isAiLang, isAirActivity, isAirGroup, isAppealLang } from "./ai/index.ts";
+import { AiError, aiConfigured, airPlan, firesSummary, analyzeReport, generateAppeal, isAiLang, isAirActivity, isAirGroup, isAppealLang } from "./ai/index.ts";
 import { bestWindows, getAirSnapshot } from "./air/index.ts";
+import { FirmsError, getFires } from "./firms/index.ts";
 
 const PORT = Number(process.env.PORT) || 5050;
 const TMP_DIR = path.join(import.meta.dirname, "uploads", "tmp");
@@ -384,6 +385,37 @@ app.post("/api/ai/air-plan", aiLimiter, async (req, res) => {
     console.error("[ai] air plan failed:", err instanceof Error ? err.message : err);
     const code = err instanceof AiError ? err.code : "unavailable";
     res.status(code === "bad_response" ? 502 : 503).json({ ok: false, code, message: "Air plan failed." });
+  }
+});
+
+// F4: NASA FIRMS VIIRS thermal anomalies in Atyrau oblast, last 7 days (cached 3 h).
+app.get("/api/fires", async (_req, res) => {
+  try {
+    const fires = await getFires();
+    res.setHeader("Cache-Control", "public, max-age=900");
+    res.json({ ok: true, ...fires });
+  } catch (err) {
+    const code = err instanceof FirmsError ? err.code : "unavailable";
+    console.error("[firms]", err instanceof Error ? err.message : err);
+    res.status(503).json({ ok: false, code: code === "not_configured" ? "firms_not_configured" : "firms_unavailable", message: "Satellite data is unavailable." });
+  }
+});
+
+// F4: weekly AI digest of the same FIRMS snapshot (only aggregated numbers go to Gemini).
+app.post("/api/ai/fires-summary", aiLimiter, async (req, res) => {
+  const { lang } = (req.body ?? {}) as { lang?: string };
+  if (!aiConfigured()) return res.status(503).json({ ok: false, code: "not_configured", message: "AI is not configured." });
+  try {
+    const fires = await getFires();
+    const { summary, model } = await firesSummary(fires, isAiLang(lang) ? lang : "ru");
+    res.json({ ok: true, summary, model, from: fires.from, to: fires.to, total: fires.stats.total });
+  } catch (err) {
+    if (err instanceof FirmsError) {
+      return res.status(503).json({ ok: false, code: err.code === "not_configured" ? "firms_not_configured" : "firms_unavailable", message: "Satellite data is unavailable." });
+    }
+    console.error("[ai] fires summary failed:", err instanceof Error ? err.message : err);
+    const code = err instanceof AiError ? err.code : "unavailable";
+    res.status(code === "bad_response" ? 502 : 503).json({ ok: false, code, message: "Summary failed." });
   }
 });
 

@@ -104,3 +104,22 @@
     opacity: 0;
   }
 }
+
+/* Leaflet popups in the dark theme (used by the satellite layer) */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: var(--shadow-float);
+}
+.leaflet-popup-content-wrapper {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+.leaflet-popup-content {
+  margin: 12px 14px;
+  font: inherit;
+}
+.leaflet-container a.leaflet-popup-close-button {
+  color: var(--muted-foreground);
+}
