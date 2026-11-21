@@ -14,6 +14,31 @@ export type Severity = 1 | 2 | 3 | 4 | 5;
 
 export type ReportStatus = "open" | "appeal_sent" | "answered" | "resolved";
 
+/** Strict JSON returned by POST /api/ai/analyze (Gemini responseSchema). */
+export interface AiAnalysis {
+  relevant: boolean;
+  category: CategoryId;
+  severity: Severity;
+  title: string;
+  summary: string;
+  visible_evidence: string[];
+  suggested_actions: string[];
+  confidence: number;
+}
+
+/** AI block stored with a published report. category/severity are the AI's original proposal. */
+export interface ReportAi {
+  summary: string;
+  visible_evidence: string[];
+  suggested_actions: string[];
+  confidence: number;
+  category: string;
+  severity: number;
+  model: string;
+  /** The author changed the AI draft before publishing. */
+  edited: boolean;
+}
+
 export interface Report {
   _id: string;
   title: string;
@@ -28,6 +53,7 @@ export interface Report {
   status: ReportStatus;
   upvotes: number;
   createdAt: string;
+  ai?: ReportAi;
   demo?: boolean;
 }
 
@@ -35,9 +61,11 @@ export interface NewReportPayload {
   title: string;
   desc: string;
   category: CategoryId;
+  severity: Severity;
   lat: number;
   lng: number;
   images: Blob[];
+  ai?: ReportAi;
 }
 
 export interface Stats {

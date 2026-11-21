@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CalendarDays, CheckCircle2, Eye, Flag, MapPin, MoreHorizontal, Trash2 } from "lucide-react";
+import { CalendarDays, CheckCircle2, Eye, Flag, MapPin, MoreHorizontal, PencilLine, Sparkles, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,8 @@ import { reportImages } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 import { hasUpvoted, markUpvoted } from "@/lib/upvoteStore";
 import type { Report, ResolveReason } from "@/types";
+import { AiInsight, ConfidenceChip } from "./AiInsight";
+import { AiNotice } from "./AiNotice";
 
 interface ReportDetailProps {
   report: Report;
@@ -53,9 +55,34 @@ export function ReportDetail({ report, onResolve, onUpvote, onDelete, onClose }:
 
       <ImageGallery images={reportImages(report)} alt={report.title} />
 
-      <p className="text-[15px] whitespace-pre-line">
-        {report.desc || <span className="text-faint">{t("report.noDescription")}</span>}
-      </p>
+      {(report.desc || !report.ai) && (
+        <p className="text-[15px] whitespace-pre-line">
+          {report.desc || <span className="text-faint">{t("report.noDescription")}</span>}
+        </p>
+      )}
+
+      {report.ai && (
+        <section aria-labelledby={`ai-${report._id}`} className="flex flex-col gap-3 rounded-2xl border border-aqua/30 bg-aqua/5 p-4">
+          <header className="flex flex-wrap items-center gap-2">
+            <h3 id={`ai-${report._id}`} className="flex items-center gap-2">
+              <Sparkles size={16} aria-hidden="true" className="text-aqua" />
+              {t("ai.section")}
+            </h3>
+            <ConfidenceChip value={report.ai.confidence} />
+          </header>
+          {report.ai.summary && <p className="text-sm whitespace-pre-line">{report.ai.summary}</p>}
+          <AiInsight evidence={report.ai.visible_evidence} actions={report.ai.suggested_actions} />
+          <footer className="flex flex-col gap-1">
+            <AiNotice />
+            {report.ai.edited && (
+              <small className="flex items-center gap-1.5">
+                <PencilLine size={12} aria-hidden="true" className="shrink-0" />
+                {t("ai.edited")}
+              </small>
+            )}
+          </footer>
+        </section>
+      )}
 
       <dl className="grid-cols-2 text-xs">
         <div className="flex items-center gap-1.5 rounded-xl border bg-background-2 p-2.5">

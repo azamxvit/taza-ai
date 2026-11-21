@@ -1,7 +1,18 @@
-import type { NewReportPayload, Report, ResolveReason, ResolveResult, Stats } from "@/types";
+import type { AiAnalysis, Lang, NewReportPayload, Report, ResolveReason, ResolveResult, Stats } from "@/types";
 
 // API base URL: VITE_API_URL in production, same origin in dev (Vite proxies /api).
 const BASE = import.meta.env.VITE_API_URL?.trim() || "";
+
+/** Error from our API; `code` is a stable id the UI translates (e.g. "rate_limited"). */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+    public code?: string
+  ) {
+    super(message);
+  }
+}
 
 async function handle<T>(res: Response): Promise<T> {
   let data: unknown = null;
@@ -11,8 +22,8 @@ async function handle<T>(res: Response): Promise<T> {
     /* no body */
   }
   if (!res.ok) {
-    const message = (data as { message?: string } | null)?.message || `Request failed (${res.status})`;
-    throw new Error(message);
+    const body = data as { message?: string; code?: string } | null;
+    throw new ApiError(body?.message || `Request failed (${res.status})`, res.status, body?.code);
   }
   return data as T;
 }
@@ -21,15 +32,31 @@ export async function fetchReports(): Promise<Report[]> {
   return handle<Report[]>(await fetch(`${BASE}/api/reports`));
 }
 
-export async function createReport({ title, desc, category, lat, lng, images }: NewReportPayload) {
+export async function createReport({ title, desc, category, severity, lat, lng, images, ai }: NewReportPayload) {
   const formData = new FormData();
   formData.append("title", title);
   formData.append("desc", desc || "");
   formData.append("category", category || "other");
+  formData.append("severity", String(severity));
+  if (ai) formData.append("ai", JSON.stringify(ai));
   formData.append("lat", String(lat));
   formData.append("lng", String(lng));
   images.slice(0, 5).forEach((img) => formData.append("images", img));
   return handle<{ ok: true; report: Report }>(await fetch(`${BASE}/api/reports`, { method: "POST", body: formData }));
+}
+
+/**
+ * F1: ask the server to analyze photos (+ optional note). Only the photos and
+ * the note are sent — no location and no personal data (Gemini free tier).
+ */
+export async function analyzeReport(images: Blob[], note: string, lang: Lang) {
+  const formData = new FormData();
+  images.slice(0, 3).forEach((img) => formData.append("images", img, "photo.jpg"));
+  formData.append("note", note);
+  formData.append("lang", lang);
+  return handle<{ ok: true; analysis: AiAnalysis; model: string }>(
+    await fetch(`${BASE}/api/ai/analyze`, { method: "POST", body: formData })
+  );
 }
 
 /** Resolve an uploaded image path (server returns /uploads/xxx) against the API base. */

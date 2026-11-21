@@ -6,10 +6,12 @@ import path from "node:path";
 import fs from "node:fs";
 import crypto from "node:crypto";
 import sharp from "sharp";
+import rateLimit from "express-rate-limit";
 import type { WithId } from "mongodb";
 import { getReportsCollection, pingDb, toObjectId } from "./db.ts";
 import { DISK_DIR, deleteImages, putImage, usingObjectStorage } from "./storage.ts";
-import type { ReportDoc } from "./types.ts";
+import type { ReportAi, ReportDoc } from "./types.ts";
+import { AiError, aiConfigured, analyzeReport, isAiLang } from "./ai/index.ts";
 
 const PORT = Number(process.env.PORT) || 5050;
 const TMP_DIR = path.join(import.meta.dirname, "uploads", "tmp");
@@ -17,6 +19,8 @@ fs.mkdirSync(TMP_DIR, { recursive: true });
 
 const app = express();
 const isProd = process.env.NODE_ENV === "production";
+// Render/Vercel put a proxy in front: trust one hop so rate limiting sees the real client IP.
+app.set("trust proxy", 1);
 
 // --- Security headers (mirrors frontend vercel.json) ---
 app.use((_req, res, next) => {
@@ -78,6 +82,45 @@ const upload = multer({
   },
 });
 
+// --- AI endpoints: 10 requests per minute per IP, photos kept in memory only ---
+const aiLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: 10,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: { ok: false, code: "rate_limited", message: "Too many AI requests, try again in a minute." },
+});
+
+const aiUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024, files: 3 },
+  fileFilter: (_req, file, cb) => {
+    if (/^image\/(jpeg|png|webp|heic|heif|gif)$/.test(file.mimetype)) return cb(null, true);
+    cb(new Error("Only image files are allowed."));
+  },
+});
+
+/** Optional AI block sent with a new report; anything malformed is dropped. */
+function parseReportAi(raw: unknown): ReportAi | undefined {
+  if (typeof raw !== "string" || !raw) return undefined;
+  try {
+    const v = JSON.parse(raw) as Partial<ReportAi>;
+    const strings = (x: unknown) => (Array.isArray(x) ? x.filter((s) => typeof s === "string").map((s) => s.slice(0, 200)).slice(0, 5) : []);
+    return {
+      summary: String(v.summary ?? "").slice(0, 1000),
+      visible_evidence: strings(v.visible_evidence),
+      suggested_actions: strings(v.suggested_actions),
+      confidence: Math.min(1, Math.max(0, Number(v.confidence) || 0)),
+      category: String(v.category ?? "other").slice(0, 40),
+      severity: Math.min(5, Math.max(1, Math.round(Number(v.severity) || 2))),
+      model: String(v.model ?? "").slice(0, 60),
+      edited: v.edited === true,
+    };
+  } catch {
+    return undefined;
+  }
+}
+
 /** Normalize any image to an auto-rotated, web-optimized JPEG (in place). */
 async function optimizeImage(filePath: string): Promise<void> {
   try {
@@ -131,7 +174,7 @@ app.get("/api/reports", async (_req, res) => {
 app.post("/api/reports", upload.array("images", 5), async (req, res) => {
   const files = (req.files as Express.Multer.File[] | undefined) ?? [];
   try {
-    const { title, desc, category, lat, lng } = req.body as Record<string, string | undefined>;
+    const { title, desc, category, lat, lng, severity, ai } = req.body as Record<string, string | undefined>;
     if (!title?.trim()) return res.status(400).json({ ok: false, message: "Title is required." });
     const latitude = Number.parseFloat(lat ?? "");
     const longitude = Number.parseFloat(lng ?? "");
@@ -149,6 +192,7 @@ app.post("/api/reports", upload.array("images", 5), async (req, res) => {
       title: title.trim().slice(0, 120),
       desc: (desc || "").trim().slice(0, 2000),
       category: (category || "other").trim(),
+      severity: Math.min(5, Math.max(1, Math.round(Number(severity) || 2))),
       lat: latitude,
       lng: longitude,
       imageUrl: imageUrls[0] ?? null, // first image kept for backward-compat
@@ -157,12 +201,34 @@ app.post("/api/reports", upload.array("images", 5), async (req, res) => {
       upvotes: 0,
       createdAt: new Date(),
     };
+    const aiBlock = parseReportAi(ai);
+    if (aiBlock) doc.ai = aiBlock;
     const result = await (await getReportsCollection()).insertOne(doc);
     res.status(201).json({ ok: true, report: { ...doc, _id: result.insertedId.toString() } });
   } catch (err) {
     res.status(400).json({ ok: false, message: err instanceof Error ? err.message : "Failed to create report" });
   } finally {
     for (const f of files) fs.rm(f.path, { force: true }, () => {});
+  }
+});
+
+// F1: photo (+ optional note) → strict-JSON draft from Gemini. Nothing is stored.
+app.post("/api/ai/analyze", aiLimiter, aiUpload.array("images", 3), async (req, res) => {
+  const files = (req.files as Express.Multer.File[] | undefined) ?? [];
+  if (!aiConfigured()) return res.status(503).json({ ok: false, code: "not_configured", message: "AI is not configured." });
+  if (!files.length) return res.status(400).json({ ok: false, code: "no_image", message: "Add at least one photo." });
+  const { note, lang } = req.body as Record<string, string | undefined>;
+  try {
+    const { analysis, model } = await analyzeReport(
+      files.map((f) => f.buffer),
+      (note ?? "").trim(),
+      isAiLang(lang) ? lang : "ru"
+    );
+    res.json({ ok: true, analysis, model });
+  } catch (err) {
+    console.error("[ai] analyze failed:", err instanceof Error ? err.message : err);
+    const code = err instanceof AiError ? err.code : "unavailable";
+    res.status(code === "bad_response" ? 502 : 503).json({ ok: false, code, message: "AI analysis failed." });
   }
 });
 
@@ -239,7 +305,9 @@ app.delete("/api/reports/:id", async (req, res) => {
 // Upload/validation errors (multer limits, wrong MIME) → 400 JSON.
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   const message = err instanceof Error ? err.message : "Bad request";
-  res.status(err instanceof multer.MulterError ? 413 : 400).json({ ok: false, message });
+  const tooBig = err instanceof multer.MulterError && (err.code === "LIMIT_FILE_SIZE" || err.code === "LIMIT_FILE_COUNT");
+  const code = tooBig ? "too_large" : err instanceof multer.MulterError ? "bad_upload" : "bad_image";
+  res.status(tooBig ? 413 : 400).json({ ok: false, code, message });
 });
 
 app.listen(PORT, () => {

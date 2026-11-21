@@ -41,7 +41,7 @@ export function ReportCard({ report }: { report: Report }) {
               {report.title}
             </Link>
           </h3>
-          <p className="line-clamp-2 text-sm text-muted-foreground">{report.desc || t("report.noDescription")}</p>
+          <p className="line-clamp-2 text-sm text-muted-foreground">{report.desc || report.ai?.summary || t("report.noDescription")}</p>
           <footer className="flex items-center justify-between pt-1 text-xs text-faint">
             <time dateTime={report.createdAt}>{formatDate(report.createdAt, i18n.language)}</time>
             <span className="inline-flex items-center gap-1" aria-label={t("report.seeToo")}>
