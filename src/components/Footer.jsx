@@ -1,12 +1,14 @@
+import { useTranslation } from "react-i18next";
+
 export default function Footer() {
-    return (
-        <footer className="bg-gray-900 text-gray-300 py-6">
-            <div className="max-w-6xl mx-auto px-6 text-center text-sm">
-                <div className="mb-1">
-                    <span className="font-semibold text-white">CleanCity</span> - A step towards a greener tomorrow.
-                </div>
-                © {new Date().getFullYear()} All rights reserved.
-            </div>
-        </footer>
-    );
-};
+  const { t } = useTranslation();
+  return (
+    <footer className="max-w-6xl mx-auto px-4 mt-12 text-xs text-faint flex flex-wrap gap-x-4 gap-y-1">
+      <span>© {new Date().getFullYear()} Taza AI</span>
+      <a className="hover:text-muted underline" href="https://github.com/Robibiruk/clean-city" target="_blank" rel="noreferrer">
+        {t("footer.basedOn", { name: "CleanCity" })}
+      </a>
+      <span>{t("footer.osm")}</span>
+    </footer>
+  );
+}

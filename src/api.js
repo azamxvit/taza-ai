@@ -42,10 +42,16 @@ export function resolveImage(imageUrl) {
   return `${BASE}${imageUrl}`;
 }
 
-// Resolve the first usable image from a report (handles imageUrl or imageUrls[]).
+// All image paths of a report (handles legacy imageUrl and imageUrls[]).
+export function reportImages(report) {
+  if (!report) return [];
+  if (report.imageUrls && report.imageUrls.length) return report.imageUrls;
+  return report.imageUrl ? [report.imageUrl] : [];
+}
+
+// Resolve the first usable image from a report.
 export function firstImage(report) {
-  if (!report) return null;
-  const list = report.imageUrls && report.imageUrls.length ? report.imageUrls : report.imageUrl ? [report.imageUrl] : [];
+  const list = reportImages(report);
   return list.length ? resolveImage(list[0]) : null;
 }
 

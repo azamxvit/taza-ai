@@ -1,0 +1,139 @@
+{
+  "app": {
+    "name": "Taza AI",
+    "tagline": "A clean Atyrau, together",
+    "aiDisclaimer": "AI estimate, may be wrong",
+    "demo": "Demo"
+  },
+  "nav": {
+    "map": "Map",
+    "reports": "Reports",
+    "report": "Report",
+    "stats": "Stats",
+    "about": "About",
+    "air": "Air",
+    "main": "Main navigation",
+    "aboutShort": "About"
+  },
+  "lang": {
+    "label": "Language",
+    "ru": "Русский",
+    "kk": "Қазақша",
+    "en": "English"
+  },
+  "map": {
+    "hint": "Tap the map to mark where the problem is",
+    "layer": "Map layer",
+    "layers": {
+      "dark": "Dark",
+      "street": "Streets",
+      "satellite": "Satellite"
+    },
+    "locate": "My location",
+    "locateError": "Could not get your location",
+    "youAreHere": "You are here",
+    "photos": "Photos on markers",
+    "filters": "Filter by category"
+  },
+  "filters": {
+    "all": "All"
+  },
+  "category": {
+    "illegal_dump": "Illegal dump",
+    "waste_burning": "Waste burning",
+    "oil_spill": "Oil product spill",
+    "water_pollution": "Water pollution",
+    "air_emission": "Smoke & emissions",
+    "dead_wildlife": "Dead wildlife",
+    "tree_damage": "Tree damage",
+    "other": "Other"
+  },
+  "severity": {
+    "label": "Severity",
+    "1": "Low",
+    "2": "Moderate",
+    "3": "Noticeable",
+    "4": "High",
+    "5": "Critical"
+  },
+  "status": {
+    "open": "Open",
+    "appeal_sent": "Appeal filed",
+    "answered": "Answered",
+    "resolved": "Resolved"
+  },
+  "report": {
+    "seeToo": "I see it too",
+    "alreadyConfirmed": "You already confirmed",
+    "viewOnMap": "On map",
+    "markSolved": "Problem fixed",
+    "reportFalse": "Report as false",
+    "delete": "Delete",
+    "more": "More",
+    "noDescription": "No description",
+    "noPhoto": "No photo",
+    "close": "Close",
+    "coords": "Coordinates",
+    "notFound": "Report not found or removed"
+  },
+  "form": {
+    "title": "New report",
+    "cancel": "Cancel",
+    "location": "Location",
+    "locationHint": "Tap the map to adjust the location",
+    "titleLabel": "Title",
+    "titlePlaceholder": "e.g. Trash on the Ural river bank",
+    "category": "Category",
+    "description": "Description",
+    "descriptionPlaceholder": "What do you see? Where exactly, since when?",
+    "photos": "Photos ({{count}}/{{max}})",
+    "addPhoto": "Add photo",
+    "removePhoto": "Remove photo",
+    "submit": "Publish",
+    "submitting": "Sending…",
+    "titleRequired": "Please add a short title",
+    "failed": "Could not send. Please try again."
+  },
+  "feed": {
+    "title": "Residents' reports",
+    "count_one": "{{count}} report",
+    "count_other": "{{count}} reports",
+    "loading": "Loading reports…",
+    "retry": "Retry",
+    "empty": "No reports yet. Be the first to report a problem!",
+    "emptyCategory": "No reports in this category"
+  },
+  "stats": {
+    "title": "Statistics",
+    "subtitle": "Summary of all reports in Atyrau",
+    "total": "Total",
+    "open": "Open",
+    "resolved": "Resolved",
+    "rate": "Resolution rate",
+    "byCategory": "By category",
+    "empty": "No data yet"
+  },
+  "about": {
+    "title": "A clean Atyrau, together",
+    "lead": "Taza AI is a civic eco-platform. Seen a dump, smoke or an oil product spill? Take a photo. AI helps describe the problem and drafts an official appeal to the akimat via eOtinish.",
+    "step1Title": "Take a photo",
+    "step1": "Shoot the problem and mark the spot on the map.",
+    "step2Title": "AI analyses",
+    "step2": "AI suggests a category and severity — you can edit everything.",
+    "step3Title": "File an appeal",
+    "step3": "A ready text for eOtinish.kz, signed with your EDS or Digital ID.",
+    "cta": "Open the map",
+    "openSource": "Open source",
+    "basedOn": "Taza AI is built on the open-source project {{name}} by {{author}} (MIT license). The map, feed and reports API come from it; AI, environmental data and appeals are added on top.",
+    "dataSources": "Data sources",
+    "ethics": "The AI never concludes that a law was broken or that a specific company is to blame. All AI estimates are preliminary and may be wrong."
+  },
+  "footer": {
+    "basedOn": "Based on {{name}} (MIT)",
+    "osm": "Map: © OpenStreetMap contributors"
+  },
+  "errors": {
+    "generic": "Something went wrong",
+    "network": "Cannot reach the server"
+  }
+}

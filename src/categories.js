@@ -1,15 +1,44 @@
-// Issue categories: label, color (used for map markers + filters).
+// Taza AI eco categories (replace CleanCity's generic ones).
+// `icon` is a vanilla lucide IconNode so it can be used both in React and in
+// Leaflet divIcon HTML strings. Labels come from i18n: t(`category.${id}`).
+import { Trash2, Flame, Droplet, Waves, Factory, Fish, TreeDeciduous, CircleHelp } from "lucide";
+
 export const CATEGORIES = [
-  { id: "trash", label: "Litter / Trash", color: "#ef4444" },
-  { id: "pollution", label: "Pollution", color: "#f59e0b" },
-  { id: "water", label: "Drainage / Water", color: "#3b82f6" },
-  { id: "green", label: "Green Space", color: "#22c55e" },
-  { id: "hazard", label: "Hazard", color: "#a855f7" },
-  { id: "other", label: "Other", color: "#64748b" },
+  { id: "illegal_dump", color: "#f59e0b", icon: Trash2 },
+  { id: "waste_burning", color: "#fb7185", icon: Flame },
+  { id: "oil_spill", color: "#a78bfa", icon: Droplet },
+  { id: "water_pollution", color: "#38bdf8", icon: Waves },
+  { id: "air_emission", color: "#cbd5e1", icon: Factory },
+  { id: "dead_wildlife", color: "#f472b6", icon: Fish },
+  { id: "tree_damage", color: "#a3e635", icon: TreeDeciduous },
+  { id: "other", color: "#94a3b8", icon: CircleHelp },
 ];
 
+export const CATEGORY_IDS = CATEGORIES.map((c) => c.id);
 export const CATEGORY_MAP = Object.fromEntries(CATEGORIES.map((c) => [c.id, c]));
 
 export function categoryById(id) {
   return CATEGORY_MAP[id] || CATEGORY_MAP.other;
+}
+
+// Severity 1–5 → color (green → red) and marker size.
+export const SEVERITY_COLORS = {
+  1: "#3ddc97",
+  2: "#a3e635",
+  3: "#facc15",
+  4: "#fb923c",
+  5: "#f43f5e",
+};
+
+export function severityOf(report) {
+  const s = Number(report?.severity);
+  return s >= 1 && s <= 5 ? Math.round(s) : 2;
+}
+
+export function severityColor(sev) {
+  return SEVERITY_COLORS[sev] || SEVERITY_COLORS[2];
+}
+
+export function markerSize(sev) {
+  return 26 + (sev - 1) * 5; // 26px … 46px
 }

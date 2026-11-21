@@ -1,159 +1,180 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { ImagePlus, MapPin, X, Loader2 } from "lucide-react";
 import { CATEGORIES } from "../categories";
 import { compressImages } from "../compressUtils";
+import NodeIcon from "./Icon";
 
 const MAX_PHOTOS = 5;
 
+const inputClass =
+  "w-full p-3 rounded-xl bg-night-2 text-ink placeholder:text-faint border border-line focus:outline-none focus:border-eco transition";
+
 export default function ReportForm({ pos, onSubmit, onCancel }) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
-  const [category, setCategory] = useState("trash");
+  const [category, setCategory] = useState("illegal_dump");
   const [images, setImages] = useState([]); // array of File
-  const [previews, setPreviews] = useState([]); // array of object URLs
+  const [previews, setPreviews] = useState([]); // object URLs
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleFiles = (fileList) => {
-    const incoming = Array.from(fileList || []).filter((f) =>
-      f.type.startsWith("image/")
-    );
-    setImages((prev) => {
-      const next = [...prev, ...incoming].slice(0, MAX_PHOTOS);
-      // rebuild previews from the new set
-      setPreviews(next.map((f) => URL.createObjectURL(f)));
-      return next;
-    });
+    const incoming = Array.from(fileList || []).filter((f) => f.type.startsWith("image/"));
+    const next = [...images, ...incoming].slice(0, MAX_PHOTOS);
+    previews.forEach((u) => URL.revokeObjectURL(u));
+    setImages(next);
+    setPreviews(next.map((f) => URL.createObjectURL(f)));
   };
 
   const removeAt = (idx) => {
-    setImages((prev) => {
-      const next = prev.filter((_, i) => i !== idx);
-      setPreviews(next.map((f) => URL.createObjectURL(f)));
-      return next;
-    });
+    const next = images.filter((_, i) => i !== idx);
+    previews.forEach((u) => URL.revokeObjectURL(u));
+    setImages(next);
+    setPreviews(next.map((f) => URL.createObjectURL(f)));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) {
-      setError("Please add a short title.");
+      setError(t("form.titleRequired"));
       return;
     }
     setError("");
     setLoading(true);
     try {
-      // Fast client-side pre-compress, then server re-optimizes (auto-orient).
+      // Fast client-side pre-compress, then the server re-optimizes (auto-orient).
       const compressed = await compressImages(images, { maxDim: 1280, quality: 0.8 });
-      await onSubmit({
-        title: title.trim(),
-        desc: desc.trim(),
-        category,
-        lat: pos.lat,
-        lng: pos.lng,
-        images: compressed,
-      });
-      setTitle("");
-      setDesc("");
-      setCategory("trash");
-      setImages([]);
-      setPreviews([]);
+      await onSubmit({ title: title.trim(), desc: desc.trim(), category, lat: pos.lat, lng: pos.lng, images: compressed });
     } catch (err) {
-      setError(err.message || "Failed to submit. Please try again.");
+      setError(err.message || t("form.failed"));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">Report this location</h3>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <h2 id="report-form-title" className="text-xl font-extrabold text-ink pr-10">
+        {t("form.title")}
+      </h2>
+
+      <div className="flex items-center gap-2 rounded-xl bg-eco/10 border border-eco/30 p-3 text-sm">
+        <MapPin size={18} className="text-eco shrink-0" aria-hidden="true" />
+        <div>
+          <div className="font-mono text-ink">
+            {pos.lat.toFixed(5)}, {pos.lng.toFixed(5)}
+          </div>
+          <div className="text-xs text-muted">{t("form.locationHint")}</div>
+        </div>
+      </div>
+
+      <div>
+        <div className="text-sm font-semibold text-muted mb-2">{t("form.photos", { count: images.length, max: MAX_PHOTOS })}</div>
+        <div className="flex gap-2 flex-wrap">
+          {previews.map((src, i) => (
+            <div key={src} className="relative">
+              <img src={src} alt="" className="w-20 h-20 object-cover rounded-xl border border-line" />
+              <button
+                type="button"
+                aria-label={t("form.removePhoto")}
+                onClick={() => removeAt(i)}
+                className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-danger text-night flex items-center justify-center"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ))}
+          {images.length < MAX_PHOTOS && (
+            <label className="w-20 h-20 rounded-xl border-2 border-dashed border-line hover:border-eco text-muted hover:text-eco flex flex-col items-center justify-center gap-1 text-[10px] font-semibold cursor-pointer transition">
+              <ImagePlus size={22} aria-hidden="true" />
+              {t("form.addPhoto")}
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                className="sr-only"
+                onChange={(e) => {
+                  handleFiles(e.target.files);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+          )}
+        </div>
+      </div>
+
+      <label className="flex flex-col gap-1.5">
+        <span className="text-sm font-semibold text-muted">{t("form.titleLabel")}</span>
+        <input
+          className={inputClass}
+          type="text"
+          maxLength={120}
+          placeholder={t("form.titlePlaceholder")}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+      </label>
+
+      <fieldset>
+        <legend className="text-sm font-semibold text-muted mb-2">{t("form.category")}</legend>
+        <div className="grid grid-cols-2 gap-2">
+          {CATEGORIES.map((c) => {
+            const active = category === c.id;
+            return (
+              <button
+                key={c.id}
+                type="button"
+                aria-pressed={active}
+                onClick={() => setCategory(c.id)}
+                className={`flex items-center gap-2 text-left px-3 py-2 rounded-xl text-xs font-semibold border transition ${
+                  active ? "border-eco bg-eco/10 text-ink" : "border-line bg-night-2 text-muted hover:text-ink"
+                }`}
+              >
+                <span style={{ color: c.color }}>
+                  <NodeIcon node={c.icon} size={16} />
+                </span>
+                {t(`category.${c.id}`)}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      <label className="flex flex-col gap-1.5">
+        <span className="text-sm font-semibold text-muted">{t("form.description")}</span>
+        <textarea
+          className={inputClass}
+          rows={3}
+          maxLength={2000}
+          placeholder={t("form.descriptionPlaceholder")}
+          value={desc}
+          onChange={(e) => setDesc(e.target.value)}
+        />
+      </label>
+
+      {error && (
+        <p role="alert" className="text-sm text-danger">
+          {error}
+        </p>
+      )}
+
+      <div className="flex gap-2">
         {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="text-gray-400 hover:text-white text-sm"
-          >
-            Cancel
+          <button type="button" onClick={onCancel} className="px-4 py-3 rounded-xl font-bold text-muted bg-raised hover:text-ink">
+            {t("form.cancel")}
           </button>
         )}
+        <button
+          disabled={loading}
+          type="submit"
+          className="flex-1 inline-flex items-center justify-center gap-2 bg-eco hover:bg-eco-strong disabled:opacity-60 text-night font-bold py-3 rounded-xl transition"
+        >
+          {loading && <Loader2 size={18} className="animate-spin" aria-hidden="true" />}
+          {loading ? t("form.submitting") : t("form.submit")}
+        </button>
       </div>
-
-      <p className="text-xs text-gray-400">
-        Lat {pos.lat.toFixed(5)}, Lng {pos.lng.toFixed(5)}
-      </p>
-
-      <input
-        className="p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-400"
-        type="text"
-        placeholder="Title (e.g. Overflowing bin)"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
-
-      <select
-        className="p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-400"
-        value={category}
-        onChange={(e) => setCategory(e.target.value)}
-      >
-        {CATEGORIES.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.label}
-          </option>
-        ))}
-      </select>
-
-      <textarea
-        className="p-2 rounded bg-gray-700 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-teal-400"
-        placeholder="Description"
-        rows={3}
-        value={desc}
-        onChange={(e) => setDesc(e.target.value)}
-      />
-
-      {/* Multi-photo upload (up to 5, any image type) */}
-      <div>
-        <label className="block text-sm text-gray-300 mb-1">
-          Photos of the area ({images.length}/{MAX_PHOTOS})
-        </label>
-        <input
-          className="text-sm text-gray-300 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-teal-600 file:text-white hover:file:bg-teal-500"
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={(e) => handleFiles(e.target.files)}
-        />
-        {previews.length > 0 && (
-          <div className="grid grid-cols-3 gap-2 mt-2">
-            {previews.map((src, i) => (
-              <div key={i} className="relative">
-                <img
-                  src={src}
-                  alt={`preview ${i + 1}`}
-                  className="w-full h-20 object-cover rounded border border-gray-600"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeAt(i)}
-                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-600 text-white text-xs leading-none"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {error && <p className="text-sm text-red-400">{error}</p>}
-
-      <button
-        disabled={loading}
-        type="submit"
-        className="bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white font-semibold py-2 rounded transition"
-      >
-        {loading ? "Submitting…" : "Submit report"}
-      </button>
     </form>
   );
 }

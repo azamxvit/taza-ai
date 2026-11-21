@@ -1,135 +1,126 @@
-import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
-import { useEffect } from "react";
-import { coloredIcon } from "../leafletIcon";
-import { categoryById } from "../categories";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Eye, CheckCircle2, MoreHorizontal, Flag, Trash2, MapPin, CalendarDays } from "lucide-react";
+import { reportImages } from "../api";
+import { formatDateTime } from "../format";
+import { hasUpvoted, markUpvoted } from "../upvoteStore";
 import ImageGallery from "./ImageGallery";
+import { CategoryChip, SeverityBadge, StatusBadge } from "./badges";
 
-function FlyTo({ pos }) {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(pos, 15);
-  }, [map, pos]);
-  return null;
-}
-
-export default function ReportDetail({ report, onClose, onResolve, onUpvote, onDelete }) {
-  if (!report) return null;
-  const cat = categoryById(report.category);
+// Content of the report bottom sheet / side panel.
+export default function ReportDetail({ report, onResolve, onUpvote, onDelete, onClose }) {
+  const { t, i18n } = useTranslation();
+  const [busy, setBusy] = useState(false);
+  const [menu, setMenu] = useState(false);
+  const [upvoted, setUpvoted] = useState(() => hasUpvoted(report._id));
   const resolved = report.status === "resolved";
-  const photos = (report.imageUrls && report.imageUrls.length ? report.imageUrls : report.imageUrl ? [report.imageUrl] : []);
+
+  const guard = async (fn) => {
+    setBusy(true);
+    try {
+      await fn();
+    } finally {
+      setBusy(false);
+      setMenu(false);
+    }
+  };
+
+  const date = formatDateTime(report.createdAt, i18n.language);
 
   return (
-    <div
-      className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/70 p-4"
-      onClick={onClose}
-    >
-      <div
-        className="bg-gray-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="relative">
-          {photos.length > 0 ? (
-            <div className="p-3">
-              <ImageGallery images={photos} alt={report.title} />
-            </div>
-          ) : (
-            <div className="w-full h-64 bg-gray-800 flex items-center justify-center text-gray-500">
-              No photo
-            </div>
-          )}
-          <button
-            onClick={onClose}
-            className="absolute top-3 right-3 w-9 h-9 rounded-full bg-gray-900/80 text-white hover:bg-gray-700"
-          >
-            ✕
-          </button>
-          {resolved && (
-            <span className="absolute top-3 left-3 text-xs font-bold px-2 py-0.5 rounded-full bg-green-600 text-white">
-              ✓ Resolved
-            </span>
-          )}
+    <article className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-2 pr-10">
+        <CategoryChip id={report.category} />
+        <SeverityBadge report={report} />
+        <StatusBadge status={report.status} />
+        {report.demo && (
+          <span className="rounded-full px-2 py-0.5 text-xs font-semibold bg-raised text-muted">{t("app.demo")}</span>
+        )}
+      </div>
+
+      <h2 id="report-title" className="text-xl font-extrabold leading-snug text-ink">
+        {report.title}
+      </h2>
+
+      <ImageGallery images={reportImages(report)} alt={report.title} />
+
+      <p className="text-[15px] leading-relaxed text-ink/90 whitespace-pre-line">
+        {report.desc || <span className="text-faint">{t("report.noDescription")}</span>}
+      </p>
+
+      <div className="grid grid-cols-2 gap-2 text-xs text-muted">
+        <div className="flex items-center gap-1.5 rounded-xl bg-night-2 border border-line p-2.5">
+          <CalendarDays size={14} className="text-faint shrink-0" aria-hidden="true" />
+          {date}
         </div>
-
-        <div className="p-6">
-          <div className="flex items-center gap-2 mb-2">
-            <span
-              className="text-xs font-semibold px-2 py-0.5 rounded-full"
-              style={{ backgroundColor: cat.color + "22", color: cat.color }}
-            >
-              {cat.label}
-            </span>
-            <span className="text-xs text-gray-400">
-              {new Date(report.createdAt).toLocaleString()}
-            </span>
-          </div>
-          <h2 className="text-2xl font-bold text-white mb-2">{report.title}</h2>
-          <p className="text-gray-300 mb-4">{report.desc || "No description provided."}</p>
-
-          <div className="text-xs text-teal-400 font-mono bg-gray-800/60 p-2 rounded inline-block mb-4">
-            Lat {Number(report.lat).toFixed(4)}, Lng {Number(report.lng).toFixed(4)}
-          </div>
-
-          <div className="h-56 rounded-lg overflow-hidden mb-4">
-            <MapContainer
-              center={[report.lat, report.lng]}
-              zoom={15}
-              className="h-full w-full"
-              scrollWheelZoom={false}
-            >
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution="&copy; OpenStreetMap contributors"
-              />
-              <Marker position={[report.lat, report.lng]} icon={coloredIcon(cat.color)} />
-              <FlyTo pos={[report.lat, report.lng]} />
-            </MapContainer>
-          </div>
-
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => onUpvote(report._id)}
-              className="text-sm font-semibold px-4 py-2 rounded bg-blue-600/20 text-blue-300 border border-blue-700/50 hover:bg-blue-600/30"
-            >
-              ▲ I see this ({report.upvotes || 0})
-            </button>
-            {!resolved && (
-              <button
-                onClick={() => onResolve(report._id, "solved")}
-                className="text-sm font-semibold px-4 py-2 rounded bg-green-600/20 text-green-300 border border-green-700/50 hover:bg-green-600/30"
-              >
-                ✓ Mark solved
-              </button>
-            )}
-            <button
-              onClick={() => {
-                onClose();
-                window.location.href = `/map?focus=${report._id}`;
-              }}
-              className="text-sm font-semibold px-4 py-2 rounded bg-purple-600/20 text-purple-300 border border-purple-700/50 hover:bg-purple-600/30"
-            >
-              📍 View in map
-            </button>
-            <button
-              onClick={() => {
-                onResolve(report._id, "false");
-                onClose();
-              }}
-              className="text-sm font-semibold px-4 py-2 rounded bg-amber-600/20 text-amber-300 border border-amber-700/50 hover:bg-amber-600/30"
-            >
-              ⚑ Report as false
-            </button>
-            <button
-              onClick={() => {
-                onDelete(report._id);
-                onClose();
-              }}
-              className="text-sm font-semibold px-4 py-2 rounded bg-red-600/20 text-red-300 border border-red-700/50 hover:bg-red-600/30"
-            >
-              🗑 Delete
-            </button>
-          </div>
+        <div className="flex items-center gap-1.5 rounded-xl bg-night-2 border border-line p-2.5" title={t("report.coords")}>
+          <MapPin size={14} className="text-faint shrink-0" aria-hidden="true" />
+          <span className="font-mono">
+            {Number(report.lat).toFixed(5)}, {Number(report.lng).toFixed(5)}
+          </span>
         </div>
       </div>
-    </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          disabled={busy || upvoted}
+          onClick={() => {
+            setUpvoted(true);
+            markUpvoted(report._id);
+            guard(() => onUpvote(report._id));
+          }}
+          title={upvoted ? t("report.alreadyConfirmed") : undefined}
+          className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold border transition ${
+            upvoted ? "bg-aqua/15 border-aqua/40 text-aqua" : "bg-raised border-line text-ink hover:border-aqua"
+          }`}
+        >
+          <Eye size={16} aria-hidden="true" />
+          {t("report.seeToo")} · {report.upvotes || 0}
+        </button>
+
+        {!resolved && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => guard(() => onResolve(report._id, "solved"))}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold bg-eco/15 border border-eco/40 text-eco hover:bg-eco/25 transition disabled:opacity-50"
+          >
+            <CheckCircle2 size={16} aria-hidden="true" />
+            {t("report.markSolved")}
+          </button>
+        )}
+
+        <div className="relative ml-auto">
+          <button
+            type="button"
+            aria-label={t("report.more")}
+            aria-expanded={menu}
+            onClick={() => setMenu((m) => !m)}
+            className="w-10 h-10 rounded-xl bg-raised border border-line text-muted hover:text-ink flex items-center justify-center"
+          >
+            <MoreHorizontal size={18} />
+          </button>
+          {menu && (
+            <div className="absolute right-0 bottom-12 z-20 w-52 rounded-xl bg-night-2 border border-line shadow-xl overflow-hidden animate-fade-in">
+              <button
+                type="button"
+                onClick={() => guard(async () => { await onResolve(report._id, "false"); onClose?.(); })}
+                className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-amber-300 hover:bg-raised"
+              >
+                <Flag size={15} aria-hidden="true" /> {t("report.reportFalse")}
+              </button>
+              <button
+                type="button"
+                onClick={() => guard(async () => { await onDelete(report._id); onClose?.(); })}
+                className="flex w-full items-center gap-2 px-3 py-2.5 text-sm text-danger hover:bg-raised"
+              >
+                <Trash2 size={15} aria-hidden="true" /> {t("report.delete")}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </article>
   );
 }

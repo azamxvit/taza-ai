@@ -3,7 +3,7 @@
 // once — prevents redundant/inflated counts. Source of truth is this device;
 // the server still stores the aggregate count.
 
-const KEY = "cleancity:upvoted";
+const KEY = "taza:upvoted";
 
 export function hasUpvoted(id) {
   try {
