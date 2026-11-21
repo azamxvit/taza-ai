@@ -1,11 +1,11 @@
 services:
   - type: web
-    name: clean-city-api
+    name: taza-ai-api
     runtime: node
     plan: free
     # The backend lives in /server; repo root is the build context.
     buildCommand: npm install
-    startCommand: node server/index.js
+    startCommand: npm run server
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV

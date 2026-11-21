@@ -20,10 +20,36 @@ npm run dev        # API → http://localhost:5050, сайт → http://localhos
 
 ## Стек
 
-- **Фронтенд:** React 19, Vite 7, React Router 7, Leaflet / react-leaflet, Tailwind v4
-- **Бэкенд:** Node.js, Express, Multer, sharp
+- **Язык:** TypeScript (фронт и бэк)
+- **Фронтенд:** React 19, Vite 7, React Router 7, Leaflet / react-leaflet, Tailwind v4,
+  [shadcn/ui](https://ui.shadcn.com) (Radix), lucide-react, react-i18next
+- **Бэкенд:** Node.js, Express, Multer, sharp (запуск через `tsx`)
 - **База:** MongoDB Atlas (free M0)
 - **Деплой:** Vercel (фронт) + Render (API)
+
+## Структура
+
+```
+server/                 Express API на TypeScript (index.ts — точка входа)
+src/
+  components/
+    ui/                 компоненты shadcn/ui (Button, Badge, Card, Drawer, …)
+    common/             общие: иконки, бейджи, фильтр категорий, галерея
+    layout/             верхняя панель, нижняя навигация, футер, PageLayout
+    map/                экран карты, шторка, контролы, маркеры, слои
+    reports/            карточка, детали и форма жалобы
+  pages/                страницы «Жалобы», «Статистика», «О проекте»
+  context/              общее состояние жалоб (ReportsProvider, useReports)
+  hooks/                useMediaQuery
+  lib/                  API-клиент, категории, форматирование, утилиты
+  i18n/                 переводы kk / ru / en
+  styles/               tokens.css, base.css (стили семантических тегов), map.css
+  types/                общие типы TypeScript
+```
+
+В каждой папке есть `index.ts`, импорт идёт через неё: `import { ReportCard } from "@/components/reports"`.
+
+Проверки: `npm run typecheck`, `npm run lint`, `npm run build`.
 
 ## Основано на
 
@@ -48,6 +74,9 @@ npm run dev        # API → http://localhost:5050, сайт → http://localhos
 - [x] Локализация kk / ru / en (react-i18next), шрифт Inter с казахскими буквами
 - [x] Эко-категории вместо исходных (свалка, сжигание, нефтепродукты, вода, выбросы, животные, деревья)
 - [x] Страницы «Статистика» и «О проекте»
+- [x] Переход на TypeScript (фронт и сервер), компоненты shadcn/ui, семантическая вёрстка
+- [x] Глобальные стили для семантических тегов без CSS-классов (`src/styles/base.css`)
+- [x] Лимит фото 5 МБ и проверка MIME на сервере
 - [ ] F1: ИИ-анализ жалобы (Gemini, JSON-схема), правка черновика ИИ
 - [ ] F2: черновик обращения в eOtinish, статусы, подтверждение устранения тремя жителями
 - [ ] F3: качество воздуха (Open-Meteo) и личный ИИ-план

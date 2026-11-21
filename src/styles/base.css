@@ -1,0 +1,165 @@
+/* Classless, reusable global styles for semantic HTML.
+   Components use plain <main>, <header>, <h1>, <section>, <article>, <time> …
+   and get consistent typography/spacing without extra class names.
+   Tailwind utilities on an element still win (utilities layer > base layer). */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    margin: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ── Page structure ─────────────────────────────────────────────── */
+  main {
+    display: block;
+    min-height: 100dvh;
+    padding: var(--topbar-offset) var(--page-gutter) var(--bottomnav-offset);
+  }
+
+  main > header {
+    margin-bottom: 1.25rem;
+  }
+  main > header > p {
+    @apply text-muted-foreground mt-1;
+  }
+
+  main > section + section {
+    margin-top: 1rem;
+  }
+
+  body > #root > footer,
+  main > footer {
+    @apply text-faint text-xs mt-12 flex flex-wrap gap-x-4 gap-y-1;
+  }
+
+  /* ── Typography ─────────────────────────────────────────────────── */
+  h1 {
+    @apply text-3xl font-extrabold tracking-tight text-foreground text-balance md:text-4xl;
+  }
+  h2 {
+    @apply text-xl font-bold text-foreground leading-snug text-balance;
+  }
+  h3 {
+    @apply text-base font-semibold text-foreground leading-snug;
+  }
+  p {
+    @apply leading-relaxed text-pretty;
+  }
+  small {
+    @apply text-xs text-muted-foreground;
+  }
+  strong,
+  b {
+    @apply font-bold text-foreground;
+  }
+  time,
+  data {
+    font-variant-numeric: tabular-nums;
+  }
+  code,
+  kbd,
+  samp {
+    @apply font-mono text-[0.9em];
+  }
+  hr {
+    @apply border-border my-4;
+  }
+
+  /* Links inside running text */
+  :where(p, dd, small, figcaption) > a {
+    @apply text-primary underline underline-offset-4 hover:text-eco-strong;
+  }
+
+  /* ── Lists & definitions ────────────────────────────────────────── */
+  dl {
+    @apply grid gap-2;
+  }
+  dt {
+    @apply text-xs font-semibold uppercase tracking-wide text-muted-foreground;
+  }
+  dd {
+    @apply m-0 text-foreground;
+  }
+
+  /* ── Media ──────────────────────────────────────────────────────── */
+  img,
+  svg,
+  video {
+    max-width: 100%;
+  }
+  img {
+    height: auto;
+  }
+  figure {
+    margin: 0;
+  }
+  figcaption {
+    @apply text-xs text-muted-foreground mt-1;
+  }
+
+  /* ── Forms ──────────────────────────────────────────────────────── */
+  fieldset {
+    @apply m-0 min-w-0 border-0 p-0;
+  }
+  legend {
+    @apply mb-2 p-0 text-sm font-semibold text-muted-foreground;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  summary {
+    cursor: pointer;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 35%, transparent);
+  }
+
+  /* ── Reusable surfaces via data attributes (no CSS classes) ─────── */
+  [data-surface="glass"] {
+    background: var(--glass);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid rgb(255 255 255 / 0.07);
+    box-shadow: var(--shadow-float);
+  }
+
+  [data-scroll="x"] {
+    overflow-x: auto;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

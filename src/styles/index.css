@@ -1,0 +1,11 @@
+/* Taza AI global styles — entry point.
+   tokens.css  → design tokens (shadcn variables in the Taza palette)
+   base.css    → classless styles for semantic HTML elements
+   map.css     → Leaflet skin, markers (data-attribute driven), motion */
+@import "@fontsource-variable/inter";
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "./tokens.css";
+@import "./base.css";
+@import "./map.css";

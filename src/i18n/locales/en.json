@@ -74,7 +74,8 @@
     "noPhoto": "No photo",
     "close": "Close",
     "coords": "Coordinates",
-    "notFound": "Report not found or removed"
+    "notFound": "Report not found or removed",
+    "date": "Date"
   },
   "form": {
     "title": "New report",
