@@ -27,6 +27,13 @@ function ClickHandler({ onClick }: { onClick: (latlng: LatLng) => void }) {
 /** Fly to a report, leaving room for the bottom sheet (mobile) or side panel (desktop). */
 function flyToReport(map: L.Map, report: Report) {
   const zoom = Math.max(map.getZoom(), 15);
+  const size = map.getSize();
+  // Map not laid out yet (zero size, e.g. a hidden pane): the offset maths would give NaN
+  // and Leaflet would throw, blanking the whole page. Jump without animation instead.
+  if (!size.x || !size.y) {
+    map.setView([report.lat, report.lng], zoom, { animate: false });
+    return;
+  }
   const offset: L.PointTuple = window.matchMedia(DESKTOP_QUERY).matches ? [210, 0] : [0, map.getSize().y * 0.25];
   const point = map.project([report.lat, report.lng], zoom).add(offset);
   map.flyTo(map.unproject(point, zoom), zoom, { duration: 0.8 });

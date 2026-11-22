@@ -11,6 +11,7 @@ import { useReports } from "@/context";
 import { ApiError, generateAppeal, reportImages, resolveImage, setReportStatus } from "@/lib/api";
 import type { AppealLang, Report } from "@/types";
 import { AiNotice } from "./AiNotice";
+import { EotinishQr } from "./EotinishQr";
 
 export const EOTINISH_URL = "https://eotinish.kz/";
 
@@ -201,6 +202,8 @@ export function AppealPanel({ report }: { report: Report }) {
               </a>
             </Button>
           </nav>
+
+          <EotinishQr url={EOTINISH_URL} />
 
           <small>{t("appeal.weDontSend")}</small>
 

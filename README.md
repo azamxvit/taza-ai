@@ -16,7 +16,7 @@ npm run dev        # API → http://localhost:5050, сайт → http://localhos
 
 Без `MONGODB_URI` сервер в режиме разработки сам поднимает временную MongoDB в памяти
 (данные пропадают после перезапуска) и добавляет 12 демо-жалоб. Ключи и настройки — в [`.env.example`](.env.example);
-скопируй его в `server/.env` и заполни.
+скопируй его в `backend/.env` и заполни.
 
 ## Стек
 
@@ -29,30 +29,41 @@ npm run dev        # API → http://localhost:5050, сайт → http://localhos
 
 ## Структура
 
+Два пакета в одном репозитории (npm workspaces): сайт и API независимы, у каждого свой `package.json`.
+
 ```
-server/                 Express API на TypeScript (index.ts — точка входа)
+frontend/               сайт: React + Vite (деплой на Vercel)
+  src/
+    components/
+      ui/               компоненты shadcn/ui (Button, Badge, Card, Drawer, …)
+      common/           общие: иконки, бейджи, фильтр категорий, галерея
+      layout/           верхняя панель, нижняя навигация, футер, PageLayout
+      map/              экран карты, шторка, контролы, маркеры, слои
+      reports/          карточка, детали и форма жалобы, обращение, подтверждения
+      air/              качество воздуха: AQI, ветер, график 48 ч, ИИ-план
+      fires/            слой тепловых аномалий и панель со сводкой
+    pages/              страницы «Жалобы», «Воздух», «Статистика», «О проекте»
+    context/            общее состояние жалоб (ReportsProvider, useReports)
+    hooks/              useMediaQuery, useAir, useFires, useSlow
+    lib/                API-клиент, категории, форматирование, утилиты
+    i18n/               переводы kk / ru / en
+    styles/             tokens.css, base.css (стили семантических тегов), map.css
+    types/              общие типы TypeScript
+  public/               favicon
+backend/                API: Express на TypeScript (деплой на Render)
+  index.ts              точка входа и маршруты
   ai/                   Gemini: клиент с запасными моделями, анализ фото (F1), обращение (F2), план по воздуху (F3)
   air/                  Open-Meteo: качество воздуха и ветер для Атырау (F3)
   firms/                NASA FIRMS: тепловые аномалии по Атырауской области (F4)
   seed/                 демо-жалобы и рисунки к ним
   cache.ts              кэш в памяти (Open-Meteo 15 мин, FIRMS 3 ч)
-src/
-  components/
-    ui/                 компоненты shadcn/ui (Button, Badge, Card, Drawer, …)
-    common/             общие: иконки, бейджи, фильтр категорий, галерея
-    layout/             верхняя панель, нижняя навигация, футер, PageLayout
-    map/                экран карты, шторка, контролы, маркеры, слои
-    reports/            карточка, детали и форма жалобы, обращение, подтверждения
-    air/                качество воздуха: AQI, ветер, график 48 ч, ИИ-план
-    fires/              слой тепловых аномалий и панель со сводкой
-  pages/                страницы «Жалобы», «Воздух», «Статистика», «О проекте»
-  context/              общее состояние жалоб (ReportsProvider, useReports)
-  hooks/                useMediaQuery, useAir, useFires, useSlow
-  lib/                  API-клиент, категории, форматирование, утилиты
-  i18n/                 переводы kk / ru / en
-  styles/               tokens.css, base.css (стили семантических тегов), map.css
-  types/                общие типы TypeScript
+docs/                   DEPLOY.md, DECISIONS.md
+render.yaml, vercel.json  конфиги деплоя
 ```
+
+Команды запускаются из корня репозитория: `npm run dev` (оба пакета вместе), `npm run build`
+(сайт), `npm run server` (API), `npm run seed`. Каждый пакет можно запускать и отдельно:
+`npm run dev -w frontend`, `npm run dev -w backend`.
 
 В каждой папке есть `index.ts`, импорт идёт через неё: `import { ReportCard } from "@/components/reports"`.
 
@@ -107,7 +118,7 @@ npm run seed -- --remove  # удалить
 
 **Мои доработки:**
 
-- [x] Порт API 5050 (на macOS 5000 занят AirPlay), секреты в `server/.env`
+- [x] Порт API 5050 (на macOS 5000 занят AirPlay), секреты в `backend/.env`
 - [x] Временная MongoDB в памяти для локальной разработки без Atlas
 - [x] Тёмная тема и новый дизайн (map-first, glass-карточки, нижняя шторка, кнопка «Сообщить»)
 - [x] Карта по центру Атырау, тёмный слой по умолчанию, маркеры с размером и цветом по severity
@@ -115,7 +126,7 @@ npm run seed -- --remove  # удалить
 - [x] Эко-категории вместо исходных (свалка, сжигание, нефтепродукты, вода, выбросы, животные, деревья)
 - [x] Страницы «Статистика» и «О проекте»
 - [x] Переход на TypeScript (фронт и сервер), компоненты shadcn/ui, семантическая вёрстка
-- [x] Глобальные стили для семантических тегов без CSS-классов (`src/styles/base.css`)
+- [x] Глобальные стили для семантических тегов без CSS-классов (`frontend/src/styles/base.css`)
 - [x] Лимит фото 5 МБ и проверка MIME на сервере
 - [x] F1: ИИ-анализ жалобы (Gemini, JSON-схема), правка черновика ИИ, режим без ИИ, лимит 10 запросов/мин
 - [x] F2: черновик обращения в eOtinish (ru/kk), статусы, подтверждение устранения тремя жителями с фото «после»

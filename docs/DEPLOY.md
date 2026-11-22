@@ -54,7 +54,7 @@
    | Переменная | Значение |
    |---|---|
    | `MONGODB_URI` | строка из шага 1 |
-   | `GEMINI_API_KEY` | ваш ключ Gemini (тот же, что в `server/.env`) |
+   | `GEMINI_API_KEY` | ваш ключ Gemini (тот же, что в `backend/.env`) |
    | `FIRMS_MAP_KEY` | ваш ключ NASA FIRMS |
    | `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_PUBLIC_URL` | из шага 2 |
    | `CORS_ORIGINS`, `PUBLIC_SITE_URL` | пока `http://localhost:5173`, заменим в шаге 5 |
@@ -98,7 +98,7 @@ Render → сервис `taza-ai-api` → **Environment**:
 | В консоли браузера `CORS` | `CORS_ORIGINS` на Render не совпадает с адресом сайта буква в букву |
 | `/api/health` → `mongo: false` или ошибка | неверный `MONGODB_URI` или не открыт доступ `0.0.0.0/0` в Atlas |
 | Фото пропадают через время | не заданы `S3_*` (в логах Render будет предупреждение `[storage]`) |
-| Картинки не грузятся (ошибка 404 на `…supabase.co/…jpg`) | в `S3_PUBLIC_URL` указан только корень проекта. Нужно `https://<ref>.supabase.co/storage/v1/object/public/photos` и пересоздать демо-жалобы: `npm run seed -- --reset` с `MONGODB_URI` и `S3_*` в `server/.env` |
+| Картинки не грузятся (ошибка 404 на `…supabase.co/…jpg`) | в `S3_PUBLIC_URL` указан только корень проекта. Нужно `https://<ref>.supabase.co/storage/v1/object/public/photos` и пересоздать демо-жалобы: `npm run seed -- --reset` с `MONGODB_URI` и `S3_*` в `backend/.env` |
 | ИИ «перегружен» | бесплатный Gemini иногда отвечает 503 — повторите через минуту |
 
 ## Лимиты бесплатных тарифов

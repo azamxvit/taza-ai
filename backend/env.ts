@@ -1,5 +1,5 @@
-// Loads environment variables: server/.env first (secrets live here), then a
-// root .env as a fallback. Imported first by every server entry point.
+// Loads environment variables: backend/.env first (secrets live here), then a
+// root .env as a fallback. Imported first by every backend entry point.
 import dotenv from "dotenv";
 import path from "node:path";
 

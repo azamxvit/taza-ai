@@ -16,8 +16,8 @@ dist-ssr
 !.env.example
 
 # Server storage (runtime data)
-server/data
-server/uploads
+backend/data
+backend/uploads
 
 # Scratch / test artifacts
 _t/

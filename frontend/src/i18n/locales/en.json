@@ -221,6 +221,11 @@
     "errors": {
       "unavailable": "The AI is overloaded right now. Try again in a minute.",
       "bad_response": "The AI returned an invalid answer. Try again."
+    },
+    "qr": {
+      "title": "Submit from your phone",
+      "text": "Point your phone camera at the code, open eOtinish.kz and sign in with eGov Mobile. Copy the appeal text here and send it to yourself in a messenger.",
+      "alt": "QR code linking to eOtinish.kz"
     }
   },
   "confirm": {

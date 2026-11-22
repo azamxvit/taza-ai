@@ -1,5 +1,6 @@
 export { AiInsight, ConfidenceChip } from "./AiInsight";
 export { AiNotice } from "./AiNotice";
+export { EotinishQr } from "./EotinishQr";
 export { AppealPanel, EOTINISH_URL } from "./AppealPanel";
 export { ReportCard } from "./ReportCard";
 export { ReportDetail } from "./ReportDetail";
