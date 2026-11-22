@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Camera, CheckCircle2, Code, Database, FileText, FlaskConical, Lock, Satellite, ShieldCheck, Sparkles, Wind } from "lucide-react";
+import { Camera, CheckCircle2, Database, FileText, FlaskConical, Lock, Satellite, ShieldCheck, Sparkles, Wind } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LogoMark } from "@/components/layout";
@@ -91,9 +91,9 @@ export function AboutPage() {
         </Card>
       </section>
 
-      <section className="grid gap-3 md:grid-cols-2">
+      <section aria-labelledby="sources">
         <Card className={`gap-2 ${CARD}`}>
-          <h2 className="flex items-center gap-2 text-base">
+          <h2 id="sources" className="flex items-center gap-2 text-base">
             <Database size={18} aria-hidden="true" /> {t("about.dataSources")}
           </h2>
           <ul className="flex list-disc flex-col gap-1 pl-5 text-sm text-muted-foreground">
@@ -101,17 +101,6 @@ export function AboutPage() {
               <li key={key}>{t(`about.source.${key}`)}</li>
             ))}
           </ul>
-        </Card>
-        <Card className={`gap-2 ${CARD}`}>
-          <h2 className="flex items-center gap-2 text-base">
-            <Code size={18} aria-hidden="true" /> {t("about.openSource")}
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            {t("about.basedOn", { name: "CleanCity", author: "Robibiruk" })}{" "}
-            <a href="https://github.com/Robibiruk/clean-city" target="_blank" rel="noreferrer">
-              github.com/Robibiruk/clean-city
-            </a>
-          </p>
         </Card>
       </section>
     </>
