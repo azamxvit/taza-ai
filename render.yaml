@@ -58,6 +58,6 @@ services:
       - key: S3_PUBLIC_URL
         sync: false
 
-      # 1 = add the 12 demo reports on start if there are none
+      # 1 = add the 12 demo reports on start if there are none (off: only real reports)
       - key: SEED_DEMO
-        value: "1"
+        value: "0"

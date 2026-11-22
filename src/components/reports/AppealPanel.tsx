@@ -175,11 +175,11 @@ export function AppealPanel({ report }: { report: Report }) {
             <AiNotice />
           </p>
 
-          <nav aria-label={t("appeal.actions")} className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <nav aria-label={t("appeal.actions")} className="flex flex-col gap-2">
             <Button
               type="button"
               onClick={() => void copyText(text).then(() => toast.success(t("appeal.copied")))}
-              className="h-10 rounded-xl font-bold"
+              className="h-auto min-h-10 rounded-xl py-2 font-bold whitespace-normal"
             >
               <Copy aria-hidden="true" />
               {t("appeal.copy")}
@@ -189,12 +189,12 @@ export function AppealPanel({ report }: { report: Report }) {
               variant="secondary"
               disabled={!photos}
               onClick={() => void downloadPhotos(report).catch(() => toast.error(t("errors.generic")))}
-              className="h-10 rounded-xl font-bold"
+              className="h-auto min-h-10 rounded-xl py-2 font-bold whitespace-normal"
             >
               <Download aria-hidden="true" />
               {t("appeal.download", { count: photos })}
             </Button>
-            <Button asChild variant="secondary" className="h-10 rounded-xl font-bold">
+            <Button asChild variant="secondary" className="h-auto min-h-10 rounded-xl py-2 font-bold whitespace-normal">
               <a href={EOTINISH_URL} target="_blank" rel="noopener noreferrer">
                 <ExternalLink aria-hidden="true" />
                 {t("appeal.open")}
