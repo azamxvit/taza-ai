@@ -147,7 +147,7 @@
     },
     "principles": "Principles",
     "privacy": "Only the photo and the problem description go to the AI (Google Gemini, free tier) — no names, contacts or coordinates. You submit the appeal yourself: we send nothing on your behalf.",
-    "demo": "Reports marked “Demo” are made up to show the project: places are approximate and drawings replace photos.",
+    "demo": "Demo reports are fictional. Their photographs illustrate similar situations in other places.",
     "source": {
       "osm": "Map: © OpenStreetMap contributors; satellite layer — Esri",
       "meteo": "Air and weather: Open-Meteo.com (Copernicus CAMS model), CC BY 4.0",

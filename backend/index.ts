@@ -14,7 +14,7 @@ import { CONFIRMATIONS_TO_RESOLVE, type ReportAi, type ReportDoc, type ReportSta
 import { AiError, aiConfigured, airPlan, firesSummary, analyzeReport, generateAppeal, isAiLang, isAirActivity, isAirGroup, isAppealLang } from "./ai/index.ts";
 import { bestWindows, getAirSnapshot } from "./air/index.ts";
 import { FirmsError, getFires } from "./firms/index.ts";
-import { seedDemo } from "./seed/index.ts";
+import { refreshDemoPhotos, seedDemo } from "./seed/index.ts";
 
 const PORT = Number(process.env.PORT) || 5050;
 const TMP_DIR = path.join(import.meta.dirname, "uploads", "tmp");
@@ -508,6 +508,11 @@ app.listen(PORT, () => {
   console.log(`Taza AI API listening on http://localhost:${PORT}`);
   if (isProd && !usingObjectStorage) {
     console.warn("[storage] S3_* not set: photos are saved to the local disk, which Render's free plan wipes on every restart.");
+  }
+  if (usingObjectStorage && process.env.MONGODB_URI) {
+    refreshDemoPhotos()
+      .then((n) => n && console.log(`[seed] updated ${n} demo photos`))
+      .catch((err) => console.error("[seed] photo update failed:", err instanceof Error ? err.message : err));
   }
   // Demo data: always for the in-memory dev DB (it starts empty), or when SEED_DEMO=1.
   if ((!process.env.MONGODB_URI && !isProd) || process.env.SEED_DEMO === "1") {

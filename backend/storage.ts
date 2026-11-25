@@ -23,7 +23,16 @@ const s3 = usingObjectStorage
     })
   : null;
 
-const publicBase = () => (S3_PUBLIC_URL ?? "").replace(/\/+$/, "");
+function publicBase(): string {
+  const base = new URL(S3_PUBLIC_URL!.trim());
+  // Hosted Supabase exposes public objects on the project host, even when
+  // the S3 connection string uses the dedicated storage host.
+  if (base.hostname.endsWith(".supabase.co") && (base.pathname === "/" || base.pathname.startsWith("/storage/v1/s3"))) {
+    base.hostname = base.hostname.replace(/\.storage\.supabase\.co$/, ".supabase.co");
+    base.pathname = `/storage/v1/object/public/${encodeURIComponent(S3_BUCKET!)}`;
+  }
+  return base.href.replace(/\/+$/, "");
+}
 
 /** Upload a local file and return a PUBLIC url the browser can load. */
 export async function putImage(localPath: string, key: string, contentType = "image/jpeg"): Promise<string> {

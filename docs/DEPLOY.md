@@ -98,7 +98,7 @@ Render → сервис `taza-ai-api` → **Environment**:
 | В консоли браузера `CORS` | `CORS_ORIGINS` на Render не совпадает с адресом сайта буква в букву |
 | `/api/health` → `mongo: false` или ошибка | неверный `MONGODB_URI` или не открыт доступ `0.0.0.0/0` в Atlas |
 | Фото пропадают через время | не заданы `S3_*` (в логах Render будет предупреждение `[storage]`) |
-| Картинки не грузятся (ошибка 404 на `…supabase.co/…jpg`) | в `S3_PUBLIC_URL` указан только корень проекта. Нужно `https://<ref>.supabase.co/storage/v1/object/public/photos` и пересоздать демо-жалобы: `npm run seed -- --reset` с `MONGODB_URI` и `S3_*` в `backend/.env` |
+| Картинки не грузятся (ошибка 404 на `…supabase.co/…jpg`) | в `S3_PUBLIC_URL` указан только корень проекта. Нужно `https://<ref>.supabase.co/storage/v1/object/public/photos`; при запуске с Atlas и S3 сервер автоматически обновит ссылки на старые демо-иллюстрации |
 | ИИ «перегружен» | бесплатный Gemini иногда отвечает 503 — повторите через минуту |
 
 ## Лимиты бесплатных тарифов
